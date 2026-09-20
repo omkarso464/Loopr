@@ -1,0 +1,215 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Sign In — Loopr Campus Marketplace">
+  <section class="max-w-md mx-auto px-6 py-20 flex flex-col justify-center min-h-[calc(100vh-160px)]">
+    <!-- Card Container -->
+    <div class="bg-surface-card border border-hairline rounded-lg p-8 shadow-sm">
+      
+      <!-- Brand Identifier -->
+      <div class="text-center space-y-2 mb-8">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-primary mx-auto" aria-hidden="true">
+          <path d="M12 2V22M2 12H22M19 5L5 19M5 5L19 19" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <h1 class="display-sm text-ink">Sign in to Loopr</h1>
+        <p class="body-sm text-muted">Enter your campus email to buy and sell safely.</p>
+      </div>
+
+      <!-- Stage 1: Email Form -->
+      <form id="email-form" class="space-y-4">
+        <div>
+          <label for="email" class="block text-sm font-semibold text-ink mb-1.5">Campus Email Address</label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            required 
+            placeholder="yourname@sinhgad.edu" 
+            class="w-full h-11 px-4 bg-canvas border border-hairline rounded-md text-ink placeholder:text-muted focus:outline-none focus:border-primary focus:ring-3 focus:ring-primary/15 transition-all text-sm"
+            spellcheck="false"
+            autocomplete="email"
+          />
+          <p class="text-xs text-muted mt-2 leading-relaxed">
+            Must end in <span class="font-sans bg-canvas border border-hairline-soft px-1 py-0.5 rounded text-ink">.edu</span> or an authorized college domain.
+          </p>
+        </div>
+
+        <div id="email-error" class="hidden text-xs text-error font-medium" role="alert"></div>
+
+        <button 
+          type="submit" 
+          id="send-code-btn"
+          class="w-full h-11 bg-primary hover:bg-primary-active text-white text-sm font-medium rounded-md transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-2"
+        >
+          Send Verification Code
+        </button>
+      </form>
+
+      <!-- Stage 2: OTP Form (Hidden initially) -->
+      <form id="otp-form" class="space-y-4 hidden">
+        <div>
+          <label for="otp" class="block text-sm font-semibold text-ink mb-1.5">Enter 6-Digit Code</label>
+          <input 
+            type="text" 
+            id="otp" 
+            name="otp" 
+            maxlength="6"
+            pattern="[0-9]{6}"
+            required 
+            placeholder="123456" 
+            class="w-full h-11 px-4 tracking-[0.4em] text-center font-sans text-lg bg-canvas border border-hairline rounded-md text-ink placeholder:text-muted/30 focus:outline-none focus:border-primary focus:ring-3 focus:ring-primary/15 transition-all"
+            spellcheck="false"
+            autocomplete="one-time-code"
+            inputmode="numeric"
+          />
+          <p class="text-xs text-muted mt-2 leading-relaxed flex items-center justify-between">
+            <span>Sent code to <span id="sent-email-label" class="font-semibold text-body-strong"></span></span>
+            <button type="button" id="change-email-btn" class="text-primary hover:underline font-semibold cursor-pointer">Change</button>
+          </p>
+        </div>
+
+        <div id="otp-error" class="hidden text-xs text-error font-medium" role="alert"></div>
+
+        <button 
+          type="submit" 
+          id="verify-code-btn"
+          class="w-full h-11 bg-primary hover:bg-primary-active text-white text-sm font-medium rounded-md transition-colors shadow-sm cursor-pointer flex items-center justify-center"
+        >
+          Verify & Sign In
+        </button>
+      </form>
+
+    </div>
+  </section>
+</Layout>
+
+<script>
+  import { setSession, getSession } from "../utils/store.js";
+
+  // Check if already logged in, redirect
+  const session = getSession();
+  const urlParams = new URLSearchParams(window.location.search);
+  const redirectPath = urlParams.get('redirect') || '/profile';
+
+  if (session) {
+    window.location.href = redirectPath;
+  }
+
+  const emailForm = document.getElementById('email-form');
+  const otpForm = document.getElementById('otp-form');
+  const emailInput = document.getElementById('email') as HTMLInputElement;
+  const otpInput = document.getElementById('otp') as HTMLInputElement;
+  const emailError = document.getElementById('email-error');
+  const otpError = document.getElementById('otp-error');
+  const sendBtn = document.getElementById('send-code-btn');
+  const verifyBtn = document.getElementById('verify-code-btn');
+  const sentLabel = document.getElementById('sent-email-label');
+  const changeEmailBtn = document.getElementById('change-email-btn');
+
+  let activeEmail = "";
+
+  // Email Submit
+  if (emailForm) {
+    emailForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      emailError.classList.add('hidden');
+      
+      const emailVal = emailInput.value.trim().toLowerCase();
+      
+      // Simple verification for student domain
+      const isEdu = emailVal.endsWith('.edu') || 
+                    emailVal.endsWith('.ac.in') || 
+                    emailVal.includes('college') || 
+                    emailVal.includes('univ');
+
+      if (!isEdu) {
+        emailError.textContent = "Please enter a valid university email address (e.g. .edu).";
+        emailError.classList.remove('hidden');
+        emailInput.focus();
+        return;
+      }
+
+      activeEmail = emailVal;
+      sendBtn.textContent = "Sending…";
+      sendBtn.setAttribute('disabled', 'true');
+
+      // Simulate network request
+      setTimeout(() => {
+        sendBtn.removeAttribute('disabled');
+        sendBtn.textContent = "Send Verification Code";
+        
+        emailForm.classList.add('hidden');
+        otpForm.classList.remove('hidden');
+        sentLabel.textContent = activeEmail;
+        otpInput.focus();
+        
+        // Console log code for easy developer logging
+        console.log("LOOPR DEV OTP CODE: 123456");
+      }, 1000);
+    });
+  }
+
+  // OTP Submit
+  if (otpForm) {
+    otpForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      otpError.classList.add('hidden');
+      
+      const codeVal = otpInput.value.trim();
+      
+      // We accept 123456 as the universal simulated OTP
+      if (codeVal !== '123456') {
+        otpError.textContent = "Invalid code. Try entering '123456' for simulated verification.";
+        otpError.classList.remove('hidden');
+        otpInput.focus();
+        return;
+      }
+
+      verifyBtn.textContent = "Verifying…";
+      verifyBtn.setAttribute('disabled', 'true');
+
+      // Extract username from email
+      const namePart = activeEmail.split('@')[0];
+      const formalName = namePart
+        .split('.')
+        .map(p => p.charAt(0).toUpperCase() + p.slice(1))
+        .join(' ');
+
+      // Determine college based on domain
+      let college = "Sinhgad Institute";
+      if (activeEmail.includes('iit')) college = "IIT Bombay";
+      else if (activeEmail.includes('coep')) college = "COEP Pune";
+      else if (activeEmail.includes('vit')) college = "VIT Pune";
+      else if (activeEmail.includes('sinhgad')) college = "Sinhgad Institute";
+
+      const mockUser = {
+        name: formalName,
+        email: activeEmail,
+        college: college,
+        rating: 5.0,
+        verified: true
+      };
+
+      setTimeout(() => {
+        // Save session
+        setSession(mockUser);
+        
+        // Dispatch storage event to update layout instantly
+        window.dispatchEvent(new Event('storage'));
+        
+        // Redirect
+        window.location.href = redirectPath;
+      }, 800);
+    });
+  }
+
+  // Change Email Action
+  if (changeEmailBtn) {
+    changeEmailBtn.addEventListener('click', () => {
+      otpForm.classList.add('hidden');
+      emailForm.classList.remove('hidden');
+      emailInput.focus();
+    });
+  }
+</script>

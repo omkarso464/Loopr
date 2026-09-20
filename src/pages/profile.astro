@@ -1,0 +1,352 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Your Profile — Loopr">
+  <!-- Client Side Auth Check -->
+  <script>
+    import { getSession } from "../utils/store.js";
+    if (!getSession()) {
+      window.location.href = `/auth?redirect=${encodeURIComponent(window.location.pathname)}`;
+    }
+  </script>
+
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-8">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+      
+      <!-- Profile Info Sidebar (Col 4) -->
+      <aside class="md:col-span-4 space-y-6">
+        
+        <!-- User Badge Card -->
+        <div class="bg-surface-card border border-hairline rounded-lg p-6 text-center space-y-4">
+          <div 
+            id="profile-avatar" 
+            class="w-20 h-20 rounded-full bg-surface-cream-strong border border-hairline text-ink flex items-center justify-center font-bold text-3xl mx-auto"
+          >
+            <!-- Initial -->
+          </div>
+
+          <div class="space-y-1">
+            <h1 id="profile-name" class="title-md text-ink"><!-- Name --></h1>
+            <p id="profile-email" class="text-xs text-muted-soft font-sans truncate"><!-- Email --></p>
+          </div>
+
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-success/10 border border-success/20 rounded-full text-xs font-bold text-success uppercase tracking-wider">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+            Verified Student
+          </div>
+
+          <div class="border-t border-hairline-soft pt-4 text-left space-y-2 text-xs text-muted">
+            <div class="flex justify-between">
+              <span>College Circle</span>
+              <span id="profile-college" class="font-semibold text-ink"><!-- College --></span>
+            </div>
+            <div class="flex justify-between">
+              <span>Trust Rating</span>
+              <span class="flex items-center gap-1 font-semibold text-ink">
+                <svg class="w-3.5 h-3.5 text-accent-amber fill-accent-amber" viewBox="0 0 24 24" stroke="currentColor">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+                5.0 / 5.0
+              </span>
+            </div>
+          </div>
+
+          <button 
+            id="signout-btn"
+            class="w-full h-10 border border-hairline hover:bg-canvas text-error text-xs font-semibold rounded-md transition-colors cursor-pointer"
+          >
+            Sign Out Session
+          </button>
+        </div>
+
+        <!-- Campus Circular Economy Impact Card -->
+        <div class="bg-primary text-white rounded-lg p-6 space-y-3 relative overflow-hidden">
+          <div class="absolute inset-0 opacity-5 bg-[radial-gradient(#fff_2px,transparent_2px)] [background-size:16px_16px] pointer-events-none"></div>
+          <h3 class="title-sm text-white">Your Campus Impact</h3>
+          <p class="text-xs text-white/80 leading-relaxed">
+            By choosing local student transactions over retail shipping, you support campus sustainability.
+          </p>
+          <div class="grid grid-cols-2 gap-4 border-t border-white/20 pt-4 mt-2">
+            <div>
+              <span class="text-[10px] text-white/60 block font-sans">ITEMS SAVED</span>
+              <span class="text-xl font-bold font-sans">12</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-white/60 block font-sans">CO2 OFFSET</span>
+              <span class="text-xl font-bold font-sans">8.4kg</span>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- Main Panels Workspace (Col 8) -->
+      <section class="md:col-span-8 space-y-6">
+        
+        <!-- Tabbed Navigation Header -->
+        <nav class="flex border-b border-hairline" aria-label="Profile Tabs">
+          <button 
+            id="tab-btn-listings"
+            class="profile-tab-btn px-5 py-3 text-sm font-semibold border-b-2 border-b-primary text-ink transition-colors cursor-pointer"
+            aria-selected="true"
+          >
+            My Listings
+          </button>
+          <button 
+            id="tab-btn-wishlist"
+            class="profile-tab-btn px-5 py-3 text-sm font-semibold border-b-2 border-b-transparent text-muted hover:text-ink transition-colors cursor-pointer"
+            aria-selected="false"
+          >
+            My Wishlist
+          </button>
+        </nav>
+
+        <!-- Tab Panel: Listings -->
+        <div id="panel-listings" class="space-y-4">
+          <div id="listings-list" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Tab Panel: Wishlist (Hidden initially) -->
+        <div id="panel-wishlist" class="space-y-4 hidden">
+          <div id="wishlist-list" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { getSession, getListings, getWishlist, deleteListing, toggleWishlist, clearSession } from "../utils/store.js";
+
+  // State
+  let currentUser: any = null;
+
+  function initProfile() {
+    currentUser = getSession();
+    if (!currentUser) return;
+
+    // Sidebar fields
+    const avatarEl = document.getElementById('profile-avatar');
+    const nameEl = document.getElementById('profile-name');
+    const emailEl = document.getElementById('profile-email');
+    const collegeEl = document.getElementById('profile-college');
+
+    if (avatarEl) avatarEl.textContent = currentUser.name.charAt(0).toUpperCase();
+    if (nameEl) nameEl.textContent = currentUser.name;
+    if (emailEl) emailEl.textContent = currentUser.email;
+    if (collegeEl) collegeEl.textContent = currentUser.college;
+
+    renderListingsTab();
+    renderWishlistTab();
+    setupTabs();
+    setupSignout();
+  }
+
+  function renderListingsTab() {
+    const listContainer = document.getElementById('listings-list');
+    if (!listContainer) return;
+
+    const listings = getListings().filter(l => l.seller.email === currentUser.email);
+
+    if (listings.length === 0) {
+      listContainer.innerHTML = `
+        <div class="col-span-full border border-hairline border-dashed rounded-lg p-10 text-center text-muted">
+          <span class="text-3xl block mb-3" aria-hidden="true">📦</span>
+          <h3 class="title-sm text-ink mb-1">No active listings</h3>
+          <p class="body-sm text-muted mb-4">You haven't listed any items for sale, exchange or donation yet.</p>
+          <a href="/listings/create" class="h-10 px-4 bg-primary hover:bg-primary-active text-white text-xs font-semibold rounded-md transition-colors inline-flex items-center justify-center">
+            List your first item
+          </a>
+        </div>
+      `;
+      return;
+    }
+
+    listContainer.innerHTML = listings.map(item => {
+      const typeBadges = {
+        Sell: 'bg-primary/10 text-primary',
+        Exchange: 'bg-accent-teal/10 text-accent-teal',
+        Donate: 'bg-success/10 text-success',
+        Buy: 'bg-accent-amber/10 text-accent-amber'
+      };
+
+      const priceDisplay = item.type === 'Donate' ? 'Free' : (item.type === 'Exchange' ? 'Swap' : `₹${item.price}`);
+
+      return `
+        <div class="bg-surface-card border border-hairline rounded-lg overflow-hidden flex flex-col justify-between">
+          <div class="relative h-40 bg-surface-cream-strong overflow-hidden shrink-0">
+            <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover"/>
+            <span class="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-surface-dark/80 text-[10px] font-semibold text-white uppercase tracking-wider">${item.condition}</span>
+          </div>
+          <div class="p-4 flex-grow flex flex-col justify-between space-y-3">
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[10px] font-sans text-muted">${item.date}</span>
+                <span class="px-2 py-0.5 rounded-sm text-[10px] font-semibold ${typeBadges[item.type]}">${item.type}</span>
+              </div>
+              <h3 class="text-xs font-bold text-ink leading-tight line-clamp-1 hover:underline">
+                <a href="/listings/detail?id=${item.id}">${item.title}</a>
+              </h3>
+            </div>
+            
+            <div class="flex items-center justify-between border-t border-hairline-soft pt-3 mt-auto">
+              <span class="font-sans text-sm font-bold text-ink">${priceDisplay}</span>
+              <button 
+                data-del-id="${item.id}"
+                class="delete-listing-btn text-xs font-semibold text-error hover:underline cursor-pointer"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Bind deletes
+    listContainer.querySelectorAll('.delete-listing-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-del-id');
+        if (confirm("Are you sure you want to delete this listing? This action cannot be undone.")) {
+          deleteListing(id);
+          renderListingsTab();
+        }
+      });
+    });
+  }
+
+  function renderWishlistTab() {
+    const wishlistContainer = document.getElementById('wishlist-list');
+    if (!wishlistContainer) return;
+
+    const wishlistIds = getWishlist();
+    const listings = getListings().filter(l => wishlistIds.includes(l.id));
+
+    if (listings.length === 0) {
+      wishlistContainer.innerHTML = `
+        <div class="col-span-full border border-hairline border-dashed rounded-lg p-10 text-center text-muted">
+          <span class="text-3xl block mb-3" aria-hidden="true">❤️</span>
+          <h3 class="title-sm text-ink mb-1">Your wishlist is empty</h3>
+          <p class="body-sm text-muted mb-4">Click the heart icon on any listing card in the marketplace to save it here.</p>
+          <a href="/marketplace" class="h-10 px-4 bg-primary hover:bg-primary-active text-white text-xs font-semibold rounded-md transition-colors inline-flex items-center justify-center">
+            Go to Marketplace
+          </a>
+        </div>
+      `;
+      return;
+    }
+
+    wishlistContainer.innerHTML = listings.map(item => {
+      const typeBadges = {
+        Sell: 'bg-primary/10 text-primary',
+        Exchange: 'bg-accent-teal/10 text-accent-teal',
+        Donate: 'bg-success/10 text-success',
+        Buy: 'bg-accent-amber/10 text-accent-amber'
+      };
+
+      const priceDisplay = item.type === 'Donate' ? 'Free' : (item.type === 'Exchange' ? 'Swap' : `₹${item.price}`);
+
+      return `
+        <div class="bg-surface-card border border-hairline rounded-lg overflow-hidden flex flex-col justify-between">
+          <div class="relative h-40 bg-surface-cream-strong overflow-hidden shrink-0">
+            <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover"/>
+            <span class="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-surface-dark/80 text-[10px] font-semibold text-white uppercase tracking-wider">${item.condition}</span>
+          </div>
+          <div class="p-4 flex-grow flex flex-col justify-between space-y-3">
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[10px] font-sans text-muted flex items-center gap-1">
+                  <span class="w-1 h-1 rounded-full bg-success"></span>
+                  ${item.seller.college.split(' ')[0]}
+                </span>
+                <span class="px-2 py-0.5 rounded-sm text-[10px] font-semibold ${typeBadges[item.type]}">${item.type}</span>
+              </div>
+              <h3 class="text-xs font-bold text-ink leading-tight line-clamp-1 hover:underline">
+                <a href="/listings/detail?id=${item.id}">${item.title}</a>
+              </h3>
+            </div>
+            
+            <div class="flex items-center justify-between border-t border-hairline-soft pt-3 mt-auto">
+              <span class="font-sans text-sm font-bold text-ink">${priceDisplay}</span>
+              <button 
+                data-wish-id="${item.id}"
+                class="remove-wish-btn text-xs font-semibold text-primary hover:underline cursor-pointer"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Bind wishlist remove
+    wishlistContainer.querySelectorAll('.remove-wish-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-wish-id');
+        toggleWishlist(id);
+        renderWishlistTab();
+      });
+    });
+  }
+
+  function setupTabs() {
+    const tabListings = document.getElementById('tab-btn-listings');
+    const tabWishlist = document.getElementById('tab-btn-wishlist');
+    const panelListings = document.getElementById('panel-listings');
+    const panelWishlist = document.getElementById('panel-wishlist');
+
+    if (tabListings && tabWishlist && panelListings && panelWishlist) {
+      tabListings.addEventListener('click', () => {
+        tabListings.classList.add('border-b-primary', 'text-ink');
+        tabListings.classList.remove('border-b-transparent', 'text-muted');
+        tabListings.setAttribute('aria-selected', 'true');
+        
+        tabWishlist.classList.remove('border-b-primary', 'text-ink');
+        tabWishlist.classList.add('border-b-transparent', 'text-muted');
+        tabWishlist.setAttribute('aria-selected', 'false');
+
+        panelListings.classList.remove('hidden');
+        panelWishlist.classList.add('hidden');
+        renderListingsTab();
+      });
+
+      tabWishlist.addEventListener('click', () => {
+        tabWishlist.classList.add('border-b-primary', 'text-ink');
+        tabWishlist.classList.remove('border-b-transparent', 'text-muted');
+        tabWishlist.setAttribute('aria-selected', 'true');
+        
+        tabListings.classList.remove('border-b-primary', 'text-ink');
+        tabListings.classList.add('border-b-transparent', 'text-muted');
+        tabListings.setAttribute('aria-selected', 'false');
+
+        panelWishlist.classList.remove('hidden');
+        panelListings.classList.add('hidden');
+        renderWishlistTab();
+      });
+    }
+  }
+
+  function setupSignout() {
+    const signoutBtn = document.getElementById('signout-btn');
+    if (signoutBtn) {
+      signoutBtn.addEventListener('click', () => {
+        clearSession();
+        window.dispatchEvent(new Event('storage'));
+        window.location.href = '/';
+      });
+    }
+  }
+
+  // Run
+  initProfile();
+</script>

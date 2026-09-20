@@ -1,0 +1,261 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="List an Item — Loopr">
+  <div class="max-w-3xl mx-auto px-6 py-12">
+    
+    <!-- Auth Check Client-Side -->
+    <script>
+      import { getSession } from "../../utils/store.js";
+      if (!getSession()) {
+        window.location.href = `/auth?redirect=${encodeURIComponent(window.location.pathname)}`;
+      }
+    </script>
+
+    <!-- Header -->
+    <div class="border-b border-hairline pb-6 mb-8 text-center">
+      <h1 class="display-sm text-ink">List a New Item</h1>
+      <p class="body-sm text-muted mt-1">Create a verified listing for the campus community.</p>
+    </div>
+
+    <!-- Main Form Grid -->
+    <div class="grid grid-cols-1 gap-8">
+      
+
+      <!-- Main Fields Form -->
+      <form id="create-listing-form" class="space-y-6">
+        
+        <!-- Two Column Inputs -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          
+          <!-- Title -->
+          <div class="space-y-1.5">
+            <label for="title" class="block text-sm font-semibold text-ink">Listing Title</label>
+            <input 
+              type="text" 
+              id="title" 
+              name="title" 
+              required 
+              placeholder="e.g. iPhone 12 (Red, 64GB)" 
+              class="w-full h-11 px-4 bg-canvas border border-hairline rounded-md text-ink placeholder:text-muted focus:outline-none focus:border-primary focus:ring-3 focus:ring-primary/15 transition-all text-sm"
+            />
+          </div>
+
+          <!-- Category -->
+          <div class="space-y-1.5">
+            <label for="category" class="block text-sm font-semibold text-ink">Category</label>
+            <select 
+              id="category" 
+              name="category" 
+              required 
+              class="w-full h-11 px-3 bg-canvas border border-hairline rounded-md text-ink text-sm focus:outline-none focus:border-primary"
+            >
+              <option value="">Select a category</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Books">Books</option>
+              <option value="Furniture">Furniture</option>
+              <option value="Academic">Academic</option>
+              <option value="Apparel">Apparel</option>
+            </select>
+          </div>
+
+          <!-- Transaction Type -->
+          <div class="space-y-1.5">
+            <label for="type" class="block text-sm font-semibold text-ink">Transaction Type</label>
+            <select 
+              id="type" 
+              name="type" 
+              required 
+              class="w-full h-11 px-3 bg-canvas border border-hairline rounded-md text-ink text-sm focus:outline-none focus:border-primary"
+            >
+              <option value="Sell">Sell (For Cash)</option>
+              <option value="Exchange">Exchange (Swap)</option>
+              <option value="Donate">Donate (Free)</option>
+              <option value="Buy">Requesting (WANTED)</option>
+            </select>
+          </div>
+
+          <!-- Item Price / Exchange Terms -->
+          <div class="space-y-1.5" id="price-container">
+            <label for="price" id="price-label" class="block text-sm font-semibold text-ink">Price (₹)</label>
+            <input 
+              type="number" 
+              id="price" 
+              name="price" 
+              min="0" 
+              placeholder="e.g. 220" 
+              class="w-full h-11 px-4 bg-canvas border border-hairline rounded-md text-ink placeholder:text-muted focus:outline-none focus:border-primary focus:ring-3 focus:ring-primary/15 transition-all text-sm"
+            />
+          </div>
+
+          <!-- Exchange Terms (Hidden by default) -->
+          <div class="space-y-1.5 hidden" id="exchange-container">
+            <label for="exchangeFor" class="block text-sm font-semibold text-ink">Looking to Exchange For</label>
+            <input 
+              type="text" 
+              id="exchangeFor" 
+              name="exchangeFor" 
+              placeholder="e.g. 1080p computer monitor" 
+              class="w-full h-11 px-4 bg-canvas border border-hairline rounded-md text-ink placeholder:text-muted focus:outline-none focus:border-primary focus:ring-3 focus:ring-primary/15 transition-all text-sm"
+            />
+          </div>
+
+          <!-- Condition -->
+          <div class="space-y-1.5">
+            <label for="condition" class="block text-sm font-semibold text-ink">Item Condition</label>
+            <select 
+              id="condition" 
+              name="condition" 
+              required 
+              class="w-full h-11 px-3 bg-canvas border border-hairline rounded-md text-ink text-sm focus:outline-none focus:border-primary"
+            >
+              <option value="Like New">Like New (In box / unused)</option>
+              <option value="Excellent">Excellent (Minor signs of use)</option>
+              <option value="Good" selected>Good (Fully functional, visible wear)</option>
+              <option value="Fair">Fair (Scratches/cracks, functional)</option>
+            </select>
+          </div>
+
+          <!-- Image Link -->
+          <div class="space-y-1.5">
+            <label for="image" class="block text-sm font-semibold text-ink">Image Reference URL</label>
+            <input 
+              type="url" 
+              id="image" 
+              name="image" 
+              placeholder="https://example.com/item.jpg" 
+              class="w-full h-11 px-4 bg-canvas border border-hairline rounded-md text-ink placeholder:text-muted focus:outline-none focus:border-primary focus:ring-3 focus:ring-primary/15 transition-all text-sm"
+            />
+            <p class="text-[10px] text-muted leading-relaxed">
+              Provide an image URL. If left blank, we will automatically assign a clean stock placeholder.
+            </p>
+          </div>
+
+        </div>
+
+        <!-- Description -->
+        <div class="space-y-1.5">
+          <label for="description" class="block text-sm font-semibold text-ink">Listing Description</label>
+          <textarea 
+            id="description" 
+            name="description" 
+            rows="5" 
+            required 
+            placeholder="Provide a detailed description of the item. Include dimensions, minor faults, pickup instructions, etc." 
+            class="w-full p-4 bg-canvas border border-hairline rounded-md text-ink placeholder:text-muted focus:outline-none focus:border-primary focus:ring-3 focus:ring-primary/15 transition-all text-sm resize-y"
+          ></textarea>
+        </div>
+
+        <!-- Submit Row -->
+        <div class="border-t border-hairline-soft pt-6 flex items-center justify-end gap-4">
+          <a href="/marketplace" class="text-sm font-semibold text-muted hover:text-ink transition-colors px-1">Cancel</a>
+          <button 
+            type="submit" 
+            class="h-11 px-6 bg-primary hover:bg-primary-active text-white text-sm font-medium rounded-md transition-colors shadow-sm cursor-pointer flex items-center justify-center"
+          >
+            Publish Listing
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { addListing, getSession } from "../../utils/store.js";
+
+  // Watch Transaction Type Select
+  const typeSelect = document.getElementById('type') as HTMLSelectElement;
+  const priceContainer = document.getElementById('price-container');
+  const priceInput = document.getElementById('price') as HTMLInputElement;
+  const exchangeContainer = document.getElementById('exchange-container');
+  const exchangeInput = document.getElementById('exchangeFor') as HTMLInputElement;
+
+  if (typeSelect && priceContainer && priceInput && exchangeContainer && exchangeInput) {
+    typeSelect.addEventListener('change', () => {
+      const type = typeSelect.value;
+      if (type === 'Sell' || type === 'Buy') {
+        priceContainer.classList.remove('hidden');
+        priceInput.setAttribute('required', 'true');
+        exchangeContainer.classList.add('hidden');
+        exchangeInput.removeAttribute('required');
+      } else if (type === 'Exchange') {
+        priceContainer.classList.add('hidden');
+        priceInput.removeAttribute('required');
+        priceInput.value = '0';
+        exchangeContainer.classList.remove('hidden');
+        exchangeInput.setAttribute('required', 'true');
+      } else if (type === 'Donate') {
+        priceContainer.classList.add('hidden');
+        priceInput.removeAttribute('required');
+        priceInput.value = '0';
+        exchangeContainer.classList.add('hidden');
+        exchangeInput.removeAttribute('required');
+      }
+    });
+  }
+
+
+
+  // Handle Form Submit
+  const form = document.getElementById('create-listing-form');
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const session = getSession();
+      if (!session) {
+        window.location.href = '/auth?redirect=/listings/create';
+        return;
+      }
+
+      const fd = new FormData(form as HTMLFormElement);
+      const title = fd.get('title') as string;
+      const category = fd.get('category') as string;
+      const type = fd.get('type') as string;
+      const price = parseFloat(fd.get('price') as string) || 0;
+      const exchangeFor = fd.get('exchangeFor') as string;
+      const condition = fd.get('condition') as string;
+      let image = fd.get('image') as string;
+      const description = fd.get('description') as string;
+
+      // Assign default stock image if blank
+      if (!image) {
+        const stockImages: { [key: string]: string } = {
+          Electronics: 'https://images.unsplash.com/photo-1546054454-aa26e2b734c7?auto=format&fit=crop&w=800&q=80',
+          Books: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=800&q=80',
+          Furniture: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=800&q=80',
+          Academic: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=800&q=80',
+          Apparel: 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=800&q=80'
+        };
+        image = stockImages[category] || 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?auto=format&fit=crop&w=800&q=80';
+      }
+
+      const newListing = {
+        title,
+        category,
+        type,
+        price,
+        exchangeFor: type === 'Exchange' ? exchangeFor : undefined,
+        condition,
+        image,
+        description,
+        seller: {
+          name: session.name,
+          email: session.email,
+          rating: session.rating,
+          college: session.college,
+          verified: session.verified
+        }
+      };
+
+      addListing(newListing);
+      
+      // Redirect to marketplace
+      window.location.href = `/marketplace?category=${category}`;
+    });
+  }
+</script>

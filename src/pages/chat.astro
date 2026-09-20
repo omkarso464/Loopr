@@ -1,0 +1,284 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Messages — Loopr">
+  <!-- Client Side Auth Check -->
+  <script>
+    import { getSession } from "../utils/store.js";
+    if (!getSession()) {
+      window.location.href = `/auth?redirect=${encodeURIComponent(window.location.pathname)}`;
+    }
+  </script>
+
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-8 flex flex-col md:flex-row gap-6 h-[calc(100vh-140px)] min-h-[500px]">
+    
+    <!-- Sidebar: Conversations List (Col 4) -->
+    <aside class="w-full md:w-80 shrink-0 bg-surface-card border border-hairline rounded-lg flex flex-col overflow-hidden" aria-label="Inbox Conversations">
+      <div class="p-4 border-b border-hairline bg-canvas flex items-center justify-between">
+        <h1 class="font-sans text-sm font-bold tracking-widest text-ink uppercase">Campus Inbox</h1>
+        <span id="active-chats-count" class="text-xs font-sans text-muted bg-surface-cream-strong border border-hairline-soft px-2 py-0.5 rounded-full">
+          0 chats
+        </span>
+      </div>
+
+      <!-- Scrollable conversations list -->
+      <div id="chats-list" class="flex-grow overflow-y-auto divide-y divide-hairline-soft custom-scrollbar">
+        <!-- Rendered via JS -->
+      </div>
+    </aside>
+
+    <!-- Main Workspace: Active Chat Screen -->
+    <section class="flex-grow bg-canvas border border-hairline rounded-lg flex flex-col overflow-hidden relative" aria-label="Active Message Workspace">
+      
+      <!-- Empty State -->
+      <div id="chat-empty-state" class="absolute inset-0 flex flex-col items-center justify-center text-center p-8 bg-surface-soft/10">
+        <div class="text-4xl mb-4" aria-hidden="true">💬</div>
+        <h2 class="title-sm text-ink mb-1">Your Messages</h2>
+        <p class="body-sm text-muted max-w-xs">Select a student conversation from the sidebar to coordinate pricing and campus meetups.</p>
+      </div>
+
+      <!-- Active Chat Interface (Hidden by default) -->
+      <div id="active-chat-container" class="hidden flex flex-col h-full">
+        
+        <!-- Listing Mini Header -->
+        <div id="chat-listing-header" class="p-4 border-b border-hairline bg-surface-card flex items-center justify-between gap-4">
+          <!-- Rendered via JS -->
+        </div>
+
+        <!-- Chat History Scroll Area -->
+        <div id="chat-messages-timeline" class="flex-grow p-6 overflow-y-auto space-y-4 bg-canvas/30 custom-scrollbar flex flex-col">
+          <!-- Bubbles rendered via JS -->
+        </div>
+
+        <!-- Input Box Panel -->
+        <form id="chat-message-form" class="p-4 border-t border-hairline bg-surface-card flex gap-2">
+          <input 
+            type="text" 
+            id="message-input" 
+            placeholder="Type a secure message (e.g. Can we meet at the Library?)" 
+            required 
+            class="flex-grow h-11 px-4 bg-canvas border border-hairline rounded-md text-ink placeholder:text-muted focus:outline-none focus:border-primary text-sm"
+            autocomplete="off"
+          />
+          <button 
+            type="submit" 
+            class="h-11 px-5 bg-primary hover:bg-primary-active text-white text-sm font-medium rounded-md transition-colors shadow-sm cursor-pointer flex items-center justify-center"
+          >
+            Send
+          </button>
+        </form>
+
+      </div>
+
+    </section>
+
+  </div>
+</Layout>
+
+<script>
+  import { getChatsForUser, getChatById, getListingById, getSession, sendChatMessage } from "../utils/store.js";
+
+  // State
+  let activeChatId: string | null = null;
+  let currentUser: any = null;
+
+  function initChatPage() {
+    currentUser = getSession();
+    if (!currentUser) return;
+
+    // Load active ID from query parameter
+    const params = new URLSearchParams(window.location.search);
+    activeChatId = params.get('id');
+
+    renderSidebar();
+
+    if (activeChatId) {
+      loadActiveChat();
+    }
+  }
+
+  function renderSidebar() {
+    const chats = getChatsForUser(currentUser.email);
+    const chatsList = document.getElementById('chats-list');
+    const countEl = document.getElementById('active-chats-count');
+    if (!chatsList) return;
+
+    if (countEl) countEl.textContent = `${chats.length} chat${chats.length === 1 ? '' : 's'}`;
+
+    if (chats.length === 0) {
+      chatsList.innerHTML = `
+        <div class="p-8 text-center text-xs text-muted">
+          No conversations yet. Browse the marketplace to chat.
+        </div>
+      `;
+      return;
+    }
+
+    chatsList.innerHTML = chats.map(chat => {
+      const listing = getListingById(chat.listingId);
+      if (!listing) return '';
+
+      // Determine who we are chatting with
+      const isBuyer = chat.buyerEmail === currentUser.email;
+      const otherUser = isBuyer ? listing.seller.name : chat.buyerEmail.split('@')[0];
+      
+      const lastMsg = chat.messages[chat.messages.length - 1];
+      const lastSnippet = lastMsg ? lastMsg.text : 'No messages yet';
+      const lastTime = lastMsg ? lastMsg.time : '';
+      
+      const isSelected = chat.id === activeChatId;
+      const activeClass = isSelected ? 'bg-surface-cream-strong border-l-4 border-l-primary' : 'hover:bg-canvas';
+      const initial = otherUser.charAt(0).toUpperCase();
+
+      return `
+        <button 
+          data-chat-id="${chat.id}"
+          class="chat-select-btn w-full text-left p-4 flex gap-3 transition-colors border-l-4 border-l-transparent ${activeClass} cursor-pointer"
+        >
+          <span class="w-10 h-10 rounded-full bg-surface-cream-strong border border-hairline text-ink flex items-center justify-center font-bold shrink-0 self-center">
+            ${initial}
+          </span>
+          <div class="flex-grow min-w-0 space-y-1">
+            <div class="flex items-baseline justify-between gap-2">
+              <span class="font-sans text-sm font-semibold text-ink truncate">${otherUser}</span>
+              <span class="text-[10px] font-sans text-muted whitespace-nowrap">${lastTime}</span>
+            </div>
+            <p class="text-xs text-muted-soft truncate font-sans">${listing.title}</p>
+            <p class="text-xs text-body truncate leading-normal">${lastSnippet}</p>
+          </div>
+        </button>
+      `;
+    }).join('');
+
+    // Bind click events
+    chatsList.querySelectorAll('.chat-select-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-chat-id');
+        activeChatId = id;
+        
+        // Update URL
+        const params = new URLSearchParams(window.location.search);
+        params.set('id', id);
+        window.history.replaceState({}, '', window.location.pathname + '?' + params.toString());
+        
+        renderSidebar();
+        loadActiveChat();
+      });
+    });
+  }
+
+  function loadActiveChat() {
+    const container = document.getElementById('active-chat-container');
+    const emptyState = document.getElementById('chat-empty-state');
+    if (!container || !emptyState || !activeChatId) return;
+
+    const chat = getChatById(activeChatId);
+    if (!chat) {
+      container.classList.add('hidden');
+      emptyState.classList.remove('hidden');
+      return;
+    }
+
+    emptyState.classList.add('hidden');
+    container.classList.remove('hidden');
+
+    const listing = getListingById(chat.listingId);
+    if (!listing) return;
+
+    // Render Listing Mini Header
+    const header = document.getElementById('chat-listing-header');
+    if (header) {
+      const priceDisplay = listing.type === 'Donate' ? 'Free' : (listing.type === 'Exchange' ? 'Swap' : `₹${listing.price}`);
+      header.innerHTML = `
+        <div class="flex items-center gap-3 min-w-0">
+          <img 
+            src="${listing.image}" 
+            alt="${listing.title}" 
+            class="w-10 h-10 object-cover rounded-md border border-hairline shrink-0"
+          />
+          <div class="min-w-0">
+            <h3 class="text-xs font-semibold text-ink truncate leading-tight">${listing.title}</h3>
+            <span class="text-[10px] font-sans text-muted block mt-0.5">${listing.category} &bull; ${priceDisplay}</span>
+          </div>
+        </div>
+        <a 
+          href="/listings/detail?id=${listing.id}" 
+          class="h-8 px-3 border border-hairline hover:bg-canvas text-ink text-xs font-semibold rounded-md flex items-center justify-center shrink-0"
+        >
+          View Item
+        </a>
+      `;
+    }
+
+    // Render Messages Timeline
+    renderMessagesTimeline(chat);
+  }
+
+  function renderMessagesTimeline(chat: any) {
+    const timeline = document.getElementById('chat-messages-timeline');
+    if (!timeline) return;
+
+    timeline.innerHTML = chat.messages.map((msg: any) => {
+      const isMe = msg.sender === currentUser.email;
+      
+      const alignClass = isMe ? 'self-end items-end' : 'self-start items-start';
+      const bubbleClass = isMe 
+        ? 'bg-primary text-white rounded-br-none shadow-xs' 
+        : 'bg-surface-card border border-hairline text-ink rounded-bl-none';
+      
+      return `
+        <div class="flex flex-col max-w-[75%] ${alignClass} space-y-1">
+          <div class="px-4 py-2.5 rounded-xl text-sm leading-relaxed ${bubbleClass}">
+            ${msg.text}
+          </div>
+          <span class="text-[9px] font-sans text-muted-soft px-1">${msg.time}</span>
+        </div>
+      `;
+    }).join('');
+
+    // Scroll to bottom
+    setTimeout(() => {
+      timeline.scrollTop = timeline.scrollHeight;
+    }, 50);
+  }
+
+  // Handle Form Submit
+  const msgForm = document.getElementById('chat-message-form');
+  const msgInput = document.getElementById('message-input') as HTMLInputElement;
+
+  if (msgForm && msgInput) {
+    msgForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!activeChatId) return;
+
+      const text = msgInput.value.trim();
+      if (!text) return;
+
+      sendChatMessage(activeChatId, currentUser.email, text);
+      msgInput.value = '';
+
+      // Instant UI refresh for sender
+      const chat = getChatById(activeChatId);
+      if (chat) {
+        renderMessagesTimeline(chat);
+        renderSidebar();
+      }
+    });
+  }
+
+  // Listen for simulated reply event
+  window.addEventListener('loopr_chat_received', (e: any) => {
+    const eventChatId = e.detail?.chatId;
+    if (eventChatId === activeChatId) {
+      const chat = getChatById(activeChatId);
+      if (chat) {
+        renderMessagesTimeline(chat);
+      }
+    }
+    renderSidebar();
+  });
+
+  // Run
+  initChatPage();
+</script>

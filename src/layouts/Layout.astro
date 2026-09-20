@@ -1,23 +1,287 @@
-<!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-	</head>
-	<body>
-		<slot />
-	</body>
-</html>
+---
+import "../styles/global.css";
+import ThemeToggle from "../components/ThemeToggle.tsx";
 
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style>
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { 
+  title = "Loopr — Modern Campus Marketplace for Students", 
+  description = "Buy, Sell, Exchange, and Donate items with verified peers on your college campus. The secure student-only marketplace." 
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" class="h-full scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Loopr" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    
+    <!-- Open Graph / SEO -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content="https://loopr.store" />
+
+    <script is:inline>
+      // Apply saved / system theme before first paint to avoid a flash
+      (function () {
+        try {
+          var stored = localStorage.getItem('loopr_theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
+    
+    <script>
+      import { initDb } from "../utils/store.js";
+      // Initialize local storage database on load
+      initDb();
+    </script>
+  </head>
+  <body class="flex flex-col min-h-full bg-canvas text-body font-sans antialiased overflow-x-clip">
+    <!-- Skip Link for Accessibility -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-primary text-white px-4 py-2 rounded-md font-medium z-50">
+      Skip to main content
+    </a>
+
+    <!-- Top Navigation -->
+    <header class="sticky top-0 z-40 w-full h-16 bg-canvas border-b border-hairline flex items-center justify-between px-4 sm:px-6 md:px-8">
+      <div class="flex items-center gap-6">
+        <!-- Logo -->
+        <a href="/" class="flex items-center gap-2 group focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2 rounded-md p-1">
+          <img 
+            src="/logo.svg" 
+            alt="Loopr" 
+            width="32" 
+            height="32" 
+            class="h-8 w-auto rounded-md ring-1 ring-hairline select-none"
+          />
+          <span class="hidden sm:inline text-xs font-sans px-1.5 py-0.5 rounded-sm bg-surface-card border border-hairline text-muted">loopr.store</span>
+        </a>
+
+        <!-- Desktop Navigation Items -->
+        <nav class="hidden md:flex items-center gap-6" aria-label="Main Navigation">
+          <a href="/marketplace" class="text-sm font-medium text-muted hover:text-ink transition-colors focus-visible:outline-2 focus-visible:outline-primary rounded-md px-1">Marketplace</a>
+          <a href="/marketplace?type=Exchange" class="text-sm font-medium text-muted hover:text-ink transition-colors focus-visible:outline-2 focus-visible:outline-primary rounded-md px-1">Exchanges</a>
+          <a href="/marketplace?type=Donate" class="text-sm font-medium text-muted hover:text-ink transition-colors focus-visible:outline-2 focus-visible:outline-primary rounded-md px-1">Donations</a>
+        </nav>
+      </div>
+
+      <!-- Right Nav Cluster -->
+      <div class="flex items-center gap-4">
+        <!-- Theme Toggle -->
+        <ThemeToggle client:load />
+
+        <!-- User Chat Link -->
+        <a href="/chat" id="nav-chat-link" class="relative p-2 text-muted hover:text-ink transition-colors focus-visible:outline-2 focus-visible:outline-primary rounded-full" aria-label="In-app Messages">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <!-- Notification dot -->
+          <span id="chat-notification-dot" class="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full hidden" aria-label="New message notification"></span>
+        </a>
+
+        <!-- Profile Link / Auth Toggle -->
+        <div id="nav-auth-container" class="flex items-center gap-3">
+          <a href="/auth" class="text-sm font-medium text-muted hover:text-ink transition-colors focus-visible:outline-2 focus-visible:outline-primary rounded-md px-1">Sign In</a>
+        </div>
+
+        <a href="/listings/create" class="hidden sm:inline-flex items-center justify-center h-10 px-5 bg-primary hover:bg-primary-active text-white text-sm font-medium rounded-md transition-colors focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2">
+          List an Item
+        </a>
+
+        <!-- Mobile Menu Toggle Button -->
+        <button id="mobile-menu-btn" class="md:hidden p-2 text-muted hover:text-ink transition-colors focus-visible:outline-2 focus-visible:outline-primary rounded-md" aria-expanded="false" aria-controls="mobile-nav" aria-label="Toggle navigation menu">
+          <svg id="menu-icon" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" y1="12" x2="20" y2="12"></line>
+            <line x1="4" y1="6" x2="20" y2="6"></line>
+            <line x1="4" y1="18" x2="20" y2="18"></line>
+          </svg>
+          <svg id="close-icon" class="w-6 h-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Mobile Navigation Panel -->
+    <nav id="mobile-nav" class="md:hidden fixed top-16 left-0 w-full h-[calc(100vh-64px)] bg-canvas border-b border-hairline z-35 flex-col p-6 gap-6 shadow-md transition-all duration-300 transform -translate-y-full opacity-0 hidden" aria-label="Mobile Navigation">
+      <a href="/marketplace" class="text-lg font-medium text-ink border-b border-hairline-soft pb-2">Marketplace</a>
+      <a href="/marketplace?type=Exchange" class="text-lg font-medium text-ink border-b border-hairline-soft pb-2">Exchanges</a>
+      <a href="/marketplace?type=Donate" class="text-lg font-medium text-ink border-b border-hairline-soft pb-2">Donations</a>
+      <a href="/chat" class="text-lg font-medium text-ink border-b border-hairline-soft pb-2 flex items-center justify-between">
+        <span>Messages</span>
+        <span id="mobile-chat-dot" class="w-2.5 h-2.5 bg-primary rounded-full hidden"></span>
+      </a>
+      <a href="/listings/create" class="inline-flex items-center justify-center h-12 bg-primary hover:bg-primary-active text-white text-base font-medium rounded-md transition-colors">
+        List an Item
+      </a>
+    </nav>
+
+    <!-- Main Content Grid -->
+    <main id="main-content" class="flex-grow focus:outline-none">
+      <slot />
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-surface-dark text-on-dark-soft border-t border-surface-dark-elevated py-12 px-6 md:px-12 mt-auto">
+      <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
+        <!-- Brand Info -->
+        <div class="md:col-span-2">
+          <div class="flex items-center gap-2 mb-4">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-primary" aria-hidden="true">
+              <path d="M12 2V22M2 12H22M19 5L5 19M5 5L19 19" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+            <span class="font-serif text-2xl font-semibold tracking-tight text-on-dark">Loopr</span>
+          </div>
+          <p class="body-sm text-on-dark-soft max-w-sm">
+            A secure peer-to-peer marketplace built specifically for students. Buy, sell, exchange, or donate items within your college circle.
+          </p>
+          <p class="text-xs font-sans mt-6 text-on-dark-soft/50">
+            Domain verified student network &copy; 2026 Loopr Technologies. All rights reserved.
+          </p>
+        </div>
+
+        <!-- Links column 1 -->
+        <div>
+          <h3 class="font-sans text-xs font-bold tracking-widest text-on-dark uppercase mb-4">Marketplace</h3>
+          <ul class="space-y-2 text-sm" role="list">
+            <li><a href="/marketplace" class="hover:text-on-dark transition-colors">Browse Listings</a></li>
+            <li><a href="/marketplace?category=Electronics" class="hover:text-on-dark transition-colors">Tech & Gadgets</a></li>
+            <li><a href="/marketplace?category=Books" class="hover:text-on-dark transition-colors">Textbooks</a></li>
+            <li><a href="/marketplace?type=Donate" class="hover:text-on-dark transition-colors">Free & Donations</a></li>
+          </ul>
+        </div>
+
+        <!-- Links column 2 -->
+        <div>
+          <h3 class="font-sans text-xs font-bold tracking-widest text-on-dark uppercase mb-4">Safety & Support</h3>
+          <ul class="space-y-2 text-sm" role="list">
+            <li><a href="#" class="hover:text-on-dark transition-colors">Campus Safety Guidelines</a></li>
+            <li><a href="#" class="hover:text-on-dark transition-colors">Trust & Verification</a></li>
+            <li><a href="#" class="hover:text-on-dark transition-colors">Terms of Service</a></li>
+            <li><a href="#" class="hover:text-on-dark transition-colors">Privacy Policy</a></li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Client-side navigation & session management scripts -->
+    <script>
+      import { getSession, getChats } from "../utils/store.js";
+
+      // Mobile Menu Toggle
+      const mobileBtn = document.getElementById('mobile-menu-btn');
+      const mobileNav = document.getElementById('mobile-nav');
+      const menuIcon = document.getElementById('menu-icon');
+      const closeIcon = document.getElementById('close-icon');
+
+      if (mobileBtn && mobileNav && menuIcon && closeIcon) {
+        mobileBtn.addEventListener('click', () => {
+          const isOpen = mobileNav.classList.contains('hidden');
+          if (isOpen) {
+            mobileNav.classList.remove('hidden');
+            // Allow layout/paint before transition animation
+            setTimeout(() => {
+              mobileNav.classList.remove('-translate-y-full', 'opacity-0');
+              mobileNav.classList.add('translate-y-0', 'opacity-100');
+            }, 10);
+            menuIcon.classList.add('hidden');
+            closeIcon.classList.remove('hidden');
+            mobileBtn.setAttribute('aria-expanded', 'true');
+          } else {
+            mobileNav.classList.remove('translate-y-0', 'opacity-100');
+            mobileNav.classList.add('-translate-y-full', 'opacity-0');
+            setTimeout(() => {
+              mobileNav.classList.add('hidden');
+            }, 300);
+            menuIcon.classList.remove('hidden');
+            closeIcon.classList.add('hidden');
+            mobileBtn.setAttribute('aria-expanded', 'false');
+          }
+        });
+      }
+
+      // Check Active Auth Session & Update UI
+      function updateNavAuth() {
+        const session = getSession();
+        const container = document.getElementById('nav-auth-container');
+        if (!container) return;
+
+        if (session) {
+          // Display User Avatar / Profile link instead of Sign In
+          container.innerHTML = `
+            <a href="/profile" class="flex items-center gap-2 group focus-visible:outline-2 focus-visible:outline-primary rounded-md p-1">
+              <span class="w-8 h-8 rounded-full bg-surface-cream-strong border border-hairline text-ink flex items-center justify-center font-bold text-sm tracking-tight transition-colors group-hover:bg-primary group-hover:text-white">
+                ${session.name.charAt(0).toUpperCase()}
+              </span>
+              <span class="hidden lg:inline text-sm font-medium text-muted group-hover:text-ink transition-colors">
+                ${session.name.split(' ')[0]}
+              </span>
+            </a>
+          `;
+        } else {
+          // Default Sign In
+          container.innerHTML = `
+            <a href="/auth" class="text-sm font-medium text-muted hover:text-ink transition-colors focus-visible:outline-2 focus-visible:outline-primary rounded-md px-1">Sign In</a>
+          `;
+        }
+      }
+
+      // Update message indicator badge
+      function updateChatBadge() {
+        const session = getSession();
+        const chatDot = document.getElementById('chat-notification-dot');
+        const mobileChatDot = document.getElementById('mobile-chat-dot');
+        if (!chatDot) return;
+
+        if (session) {
+          const chats = getChats().filter(c => c.buyerEmail === session.email || c.sellerEmail === session.email);
+          const hasUnread = chats.some(c => {
+            const lastMsg = c.messages[c.messages.length - 1];
+            return lastMsg && lastMsg.sender !== session.email;
+          });
+
+          if (hasUnread) {
+            chatDot.classList.remove('hidden');
+            if (mobileChatDot) mobileChatDot.classList.remove('hidden');
+          } else {
+            chatDot.classList.add('hidden');
+            if (mobileChatDot) mobileChatDot.classList.add('hidden');
+          }
+        } else {
+          chatDot.classList.add('hidden');
+          if (mobileChatDot) mobileChatDot.classList.add('hidden');
+        }
+      }
+
+      // Initialize nav UI
+      updateNavAuth();
+      updateChatBadge();
+
+      // Listen for updates
+      window.addEventListener('storage', () => {
+        updateNavAuth();
+        updateChatBadge();
+      });
+
+      window.addEventListener('loopr_chat_received', () => {
+        updateChatBadge();
+      });
+    </script>
+  </body>
+</html>

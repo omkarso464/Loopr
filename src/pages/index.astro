@@ -1,11 +1,615 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import Reveal from '../components/Reveal.tsx';
+import HowItWorks from '../components/HowItWorks.tsx';
+import Marquee from '../components/Marquee.tsx';
+import FaqAccordion from '../components/FaqAccordion.tsx';
 ---
 
 <Layout>
-	<Welcome />
+  <!-- Hero Section -->
+  <section class="max-w-4xl mx-auto px-6 pt-16 pb-20 md:pt-24 md:pb-28 text-center flex flex-col items-center">
+    <div class="space-y-6 flex flex-col items-center max-w-2xl">
+      <div class="inline-flex items-center gap-2 px-3 py-1 bg-surface-cream-strong border border-hairline rounded-full text-xs font-semibold text-primary uppercase tracking-wider">
+        <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+        Now Live at Sinhgad Institute
+      </div>
+      <Reveal client:visible>
+        <h1 class="display-xl text-ink leading-none text-center">
+          Trade what you have.<br/>Get what you need.
+        </h1>
+      </Reveal>
+      <p class="body-md text-body max-w-lg mx-auto text-center">
+        Buy, sell, exchange, or donate books, tech, and gear. Exclusively for students with verified university emails. Safe, fee-free, and local to your dorm.
+      </p>
+
+      <!-- Minimal Search Bar -->
+      <form action="/marketplace" method="GET" class="flex flex-col sm:flex-row gap-2 w-full max-w-lg mt-4 justify-center">
+        <div class="relative flex-grow">
+          <input 
+            type="text" 
+            name="search" 
+            placeholder="What are you looking for today? (e.g. iPad, calculus...)" 
+            class="w-full h-12 pl-12 pr-4 bg-canvas border border-hairline rounded-md text-ink placeholder:text-muted focus:outline-none focus:border-primary focus:ring-3 focus:ring-primary/15 transition-all text-sm"
+            aria-label="Search items"
+          />
+          <svg class="absolute left-4 top-3.5 text-muted w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </div>
+        <button 
+          type="submit" 
+          class="h-12 px-6 bg-primary hover:bg-primary-active text-white text-sm font-medium rounded-md transition-colors shadow-sm cursor-pointer whitespace-nowrap"
+        >
+          Search Marketplace
+        </button>
+      </form>
+
+      <div class="flex items-center justify-center gap-6 pt-2 text-xs font-sans text-muted">
+        <span class="flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+          Verified Campus Emails
+        </span>
+        <span class="flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          0% Transaction Fees
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Marquee -->
+  <div class="border-y border-hairline bg-canvas">
+    <div class="max-w-6xl mx-auto px-6">
+      <Marquee client:visible />
+    </div>
+  </div>
+
+  <!-- Categories Section -->
+  <section class="bg-surface-soft border-b border-hairline py-12" aria-labelledby="categories-heading">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-center max-w-xl mx-auto mb-10">
+        <h2 id="categories-heading" class="display-sm text-ink mb-2">Browse items by campus category</h2>
+        <p class="body-sm text-muted">Filter instantly to locate textbooks, desk chairs, and camera swaps nearby.</p>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+        {[
+          { name: "Electronics", desc: "Phones, Macs, cables", icon: "💻", slug: "Electronics" },
+          { name: "Books", desc: "Textbooks, novels, guides", icon: "📚", slug: "Books" },
+          { name: "Furniture", desc: "Dorm chairs, desks, lamps", icon: "🛋️", slug: "Furniture" },
+          { name: "Academic", desc: "Calculators, draft boards", icon: "📐", slug: "Academic" },
+          { name: "Apparel", desc: "Backpacks, winter jackets", icon: "👕", slug: "Apparel" }
+        ].map((cat) => (
+          <a 
+            href={`/marketplace?category=${cat.slug}`} 
+            class="flex flex-col p-5 bg-canvas border border-hairline hover:border-primary/50 hover:shadow-sm rounded-lg transition-all text-center focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+          >
+            <span class="text-3xl mb-3 block" aria-hidden="true">{cat.icon}</span>
+            <span class="font-sans text-sm font-semibold text-ink block">{cat.name}</span>
+            <span class="text-xs text-muted mt-1 block leading-tight">{cat.desc}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works (The Loopr Loop) -->
+  <section class="bg-canvas py-20" aria-labelledby="how-heading">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="text-center max-w-xl mx-auto mb-16">
+        <h2 id="how-heading" class="display-md text-ink mb-3">How the Loop works</h2>
+        <p class="body-sm text-muted">Buy, sell, exchange, or donate items within your trusted student network in three simple steps.</p>
+      </div>
+
+      <HowItWorks client:visible />
+    </div>
+  </section>
+
+  <!-- Recent / Featured Listings -->
+  <section class="bg-surface-soft border-y border-hairline py-20" aria-labelledby="listings-heading">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-center max-w-xl mx-auto mb-10 flex flex-col items-center">
+        <h2 id="listings-heading" class="display-md text-ink">Trending Listings</h2>
+        <p class="body-sm text-muted mt-1">Fresh items posted today from verified students on campus.</p>
+        <a href="/marketplace" class="text-sm font-semibold text-primary hover:text-primary-active transition-colors flex items-center gap-1 group mt-3">
+          View All Listings
+          <svg class="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </a>
+      </div>
+
+      <!-- Listings Grid (Rendered from Local Storage in script if loaded, or defaults as SSR) -->
+      <div id="featured-listings-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <!-- Listings cards loaded dynamically via client script below -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Product Showcase (Dark Mockup) -->
+  <section class="bg-surface-dark py-24 text-on-dark-soft border-y border-surface-dark-elevated">
+    <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <!-- Text details -->
+      <div class="lg:col-span-5 space-y-6">
+        <div class="inline-flex">
+          <span class="px-2.5 py-0.5 bg-primary/10 border border-primary/20 text-primary text-xs font-semibold uppercase tracking-wider rounded-full">Secure Negotiations</span>
+        </div>
+        <h2 class="display-lg text-on-dark leading-tight">In-App Chat. No Phone Numbers Required.</h2>
+        <p class="body-md text-on-dark-soft leading-relaxed">
+          Negotiate prices, check condition photos, and coordinate your meetups securely within Loopr. You never have to share personal contact details or social profiles with strangers.
+        </p>
+        
+        <div class="space-y-4 pt-2">
+          <div class="flex gap-3">
+            <span class="text-accent-teal mt-0.5" aria-hidden="true">✔</span>
+            <div>
+              <h4 class="text-sm font-semibold text-on-dark font-sans">Verified Identities Only</h4>
+              <p class="text-xs text-on-dark-soft/70">Chat requests are limited to active student accounts with verified campus email addresses.</p>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-accent-teal mt-0.5" aria-hidden="true">✔</span>
+            <div>
+              <h4 class="text-sm font-semibold text-on-dark font-sans">Smart Exchange Offers</h4>
+              <p class="text-xs text-on-dark-soft/70">Easily propose trades, currency offers, or arrange clean drop-off donations with tailored templates.</p>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-accent-teal mt-0.5" aria-hidden="true">✔</span>
+            <div>
+              <h4 class="text-sm font-semibold text-on-dark font-sans">Structured Scheduling</h4>
+              <p class="text-xs text-on-dark-soft/70">Schedule exchange times and campus spots directly in-chat. Get automatic reminders as the time approaches.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- App Mockup Window -->
+      <div class="lg:col-span-7 flex justify-center">
+        <div class="bg-surface-dark-elevated rounded-xl border border-hairline/10 shadow-2xl overflow-hidden w-full max-w-lg">
+          <!-- Window Header -->
+          <div class="bg-surface-dark/60 px-4 py-3 border-b border-hairline/10 flex items-center gap-3">
+            <div class="flex gap-1.5" aria-hidden="true">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#c64545]/20 border border-[#c64545]/30"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-[#d4a017]/20 border border-[#d4a017]/30"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-[#5db872]/20 border border-[#5db872]/30"></span>
+            </div>
+            <div class="bg-surface-dark-elevated rounded px-3 py-0.5 text-[10px] text-on-dark-soft/50 font-sans text-center flex-grow max-w-[260px] mx-auto select-none">
+              loopr.store/chat/fujifilm_xt30
+            </div>
+          </div>
+
+          <!-- Chat Console -->
+          <div class="flex h-[340px] bg-surface-dark">
+            <!-- Sidebar -->
+            <div class="hidden sm:flex flex-col w-1/3 border-r border-hairline/10 bg-surface-dark-elevated/40">
+              <div class="p-2.5 border-b border-hairline/10">
+                <div class="w-full bg-surface-dark border border-hairline/10 rounded px-2 py-1 text-[10px] text-on-dark-soft/40 font-sans select-none">Search chats...</div>
+              </div>
+              <div class="flex-grow overflow-y-auto custom-scrollbar">
+                <div class="p-2.5 border-b border-hairline/10 flex items-center gap-2 bg-surface-dark-elevated">
+                  <div class="w-7 h-7 rounded-full bg-primary/20 border border-primary/30 text-primary flex items-center justify-center font-semibold text-xs select-none">RV</div>
+                  <div class="min-w-0">
+                    <div class="text-[11px] font-semibold text-on-dark truncate">Rohan Verma</div>
+                    <div class="text-[9px] text-on-dark-soft/60 truncate w-24">Meet you tomorrow...</div>
+                  </div>
+                </div>
+                <div class="p-2.5 border-b border-hairline/10 flex items-center gap-2 opacity-50">
+                  <div class="w-7 h-7 rounded-full bg-accent-teal/20 border border-accent-teal/30 text-accent-teal flex items-center justify-center font-semibold text-xs select-none">SS</div>
+                  <div class="min-w-0">
+                    <div class="text-[11px] font-semibold text-on-dark truncate">Siddharth Sharma</div>
+                    <div class="text-[9px] text-on-dark-soft/60 truncate w-24">Is the book available?</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chat Panel -->
+            <div class="flex-grow flex flex-col w-full sm:w-2/3">
+              <!-- Panel Header -->
+              <div class="px-4 py-2 border-b border-hairline/10 bg-surface-dark-elevated/20 flex items-center justify-between">
+                <div>
+                  <div class="text-[11px] font-semibold text-on-dark flex items-center gap-1">
+                    Rohan Verma
+                    <span class="w-1.5 h-1.5 bg-success rounded-full animate-pulse" aria-label="Online"></span>
+                  </div>
+                  <div class="text-[9px] text-on-dark-soft/80 truncate w-40">Item: Fujifilm X-T30 II + Kit Lens</div>
+                </div>
+                <span class="px-2 py-0.5 rounded-sm bg-accent-teal/10 border border-accent-teal/20 text-[9px] font-semibold text-accent-teal uppercase tracking-wider font-sans">Swap</span>
+              </div>
+
+              <!-- Message Stream -->
+              <div class="flex-grow p-3 overflow-y-auto space-y-3 font-sans text-xs custom-scrollbar">
+                <!-- Message Left -->
+                <div class="flex items-start gap-2">
+                  <div class="w-6 h-6 rounded-full bg-primary/20 text-primary border border-primary/30 flex items-center justify-center font-semibold text-[10px] select-none">RV</div>
+                  <div class="bg-surface-dark-elevated border border-hairline/5 text-on-dark max-w-[85%] rounded-r-lg rounded-bl-lg p-2.5 leading-relaxed text-[11px]">
+                    Hey! Is the Fujifilm camera still available? I have an iPad Pro M1 with Apple Pencil I'd love to swap for it.
+                  </div>
+                </div>
+
+                <!-- Message Right -->
+                <div class="flex items-start gap-2 justify-end">
+                  <div class="bg-primary/95 text-white max-w-[85%] rounded-l-lg rounded-br-lg p-2.5 leading-relaxed text-[11px]">
+                    Hi Rohan! Yes, it is. The iPad Pro M1 sounds perfect for my design classes. How is the battery health on it?
+                  </div>
+                  <div class="w-6 h-6 rounded-full bg-surface-dark-elevated text-on-dark border border-hairline/10 flex items-center justify-center font-semibold text-[10px] select-none">ME</div>
+                </div>
+
+                <!-- Message Left with Attachment -->
+                <div class="flex items-start gap-2">
+                  <div class="w-6 h-6 rounded-full bg-primary/20 text-primary border border-primary/30 flex items-center justify-center font-semibold text-[10px] select-none">RV</div>
+                  <div class="bg-surface-dark-elevated border border-hairline/5 text-on-dark max-w-[85%] rounded-r-lg rounded-bl-lg p-2.5 leading-relaxed text-[11px] space-y-2">
+                    <p>It's at 91%, screen is flawless. Here's a quick photo:</p>
+                    <div class="relative w-36 h-20 bg-surface-dark rounded overflow-hidden border border-hairline/10 group">
+                      <img 
+                        src="https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=300&q=80" 
+                        alt="iPad Pro image preview" 
+                        class="w-full h-full object-cover opacity-80"
+                      />
+                      <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span class="text-[9px] text-white underline">Click to view</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Scheduled Banner -->
+                <div class="flex justify-center my-2">
+                  <div class="bg-success/10 border border-success/30 text-success rounded-md px-3 py-1.5 text-[10px] text-center font-medium flex items-center gap-1.5 max-w-[90%]">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Meetup Scheduled: Nescafe, Sinhgad Campus (2:00 PM Tomorrow)</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Input Area -->
+              <div class="p-2 border-t border-hairline/10 bg-surface-dark-elevated/40 flex gap-2">
+                <input 
+                  type="text" 
+                  placeholder="Type your response..." 
+                  class="flex-grow bg-surface-dark border border-hairline/10 rounded px-2.5 py-1 text-[11px] text-on-dark focus:outline-none focus:border-primary/50" 
+                  disabled
+                />
+                <button class="bg-primary hover:bg-primary-active text-white px-3 py-1.5 rounded text-[10px] font-semibold select-none" disabled>Send</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Safe Exchange Spots & Metrics -->
+  <section class="bg-canvas py-20 animate-fade-in" aria-labelledby="spots-heading">
+    <div class="max-w-6xl mx-auto px-6">
+      
+      <!-- Metrics Bar -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 bg-surface-card border border-hairline rounded-xl p-8 text-center mb-20">
+        <div>
+          <div class="display-lg text-primary font-serif">₹45,000+</div>
+          <p class="body-sm font-sans text-muted mt-1 select-none">Saved by Sinhgad Students</p>
+        </div>
+        <div class="border-y sm:border-y-0 sm:border-x border-hairline/70 py-6 sm:py-0">
+          <div class="display-lg text-primary font-serif">2,400+</div>
+          <p class="body-sm font-sans text-muted mt-1 select-none">Completed Exchanges</p>
+        </div>
+        <div>
+          <div class="display-lg text-primary font-serif">98%</div>
+          <p class="body-sm font-sans text-muted mt-1 select-none">Successful Meetups</p>
+        </div>
+      </div>
+
+      <!-- Campus spots -->
+      <div class="text-center max-w-xl mx-auto mb-12">
+        <h2 id="spots-heading" class="display-md text-ink">Campus Safe Exchange Spots</h2>
+        <p class="body-sm text-muted mt-2">Ditch meeting strangers at private residences. Handoff items safely at one of our pre-approved, high-visibility meeting locations on the Sinhgad campus.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <!-- Spot 1 -->
+        <div class="border border-hairline rounded-lg p-5 space-y-3 bg-surface-soft hover:border-primary/30 transition-all">
+          <div class="flex items-center justify-between">
+            <span class="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">01</span>
+            <span class="px-2 py-0.5 bg-success/10 text-success text-[9px] font-bold uppercase tracking-wider rounded-sm select-none">High Safety</span>
+          </div>
+          <h3 class="title-sm text-ink font-semibold">Nescafe</h3>
+          <p class="body-sm text-muted text-xs leading-relaxed">
+            Grab a coffee while you inspect tech or exchange class notes. A busy, central café with plenty of seats and CCTV monitoring.
+          </p>
+          <div class="pt-2 border-t border-hairline-soft text-[10px] text-muted flex justify-between">
+            <span>Best Hours: 8 AM - 8 PM</span>
+            <span>Seats: Abundant</span>
+          </div>
+        </div>
+
+        <!-- Spot 2 -->
+        <div class="border border-hairline rounded-lg p-5 space-y-3 bg-surface-soft hover:border-primary/30 transition-all">
+          <div class="flex items-center justify-between">
+            <span class="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">02</span>
+            <span class="px-2 py-0.5 bg-success/10 text-success text-[9px] font-bold uppercase tracking-wider rounded-sm select-none">High Safety</span>
+          </div>
+          <h3 class="title-sm text-ink font-semibold">Cultural Centre</h3>
+          <p class="body-sm text-muted text-xs leading-relaxed">
+            The main hub for campus events and gatherings. A spacious, high-visibility venue perfect for trading bulky items or coordinating group meetups.
+          </p>
+          <div class="pt-2 border-t border-hairline-soft text-[10px] text-muted flex justify-between">
+            <span>Best Hours: 10 AM - 6 PM</span>
+            <span>Footfall: High</span>
+          </div>
+        </div>
+
+        <!-- Spot 3 -->
+        <div class="border border-hairline rounded-lg p-5 space-y-3 bg-surface-soft hover:border-primary/30 transition-all">
+          <div class="flex items-center justify-between">
+            <span class="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">03</span>
+            <span class="px-2 py-0.5 bg-success/10 text-success text-[9px] font-bold uppercase tracking-wider rounded-sm select-none">High Safety</span>
+          </div>
+          <h3 class="title-sm text-ink font-semibold">Central Library</h3>
+          <p class="body-sm text-muted text-xs leading-relaxed">
+            Located in the main academic complex. Ideal for trading high-value electronics and textbooks. CCTV monitored and well-lit.
+          </p>
+          <div class="pt-2 border-t border-hairline-soft text-[10px] text-muted flex justify-between">
+            <span>Best Hours: 9 AM - 6 PM</span>
+            <span>CCTV: Active</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Product Features & Testimonials (Built for campus life) -->
+  <section class="bg-surface-card border-t border-hairline py-20" aria-labelledby="why-heading">
+    <div class="max-w-6xl mx-auto px-6">
+      
+      <!-- Feature Grid -->
+      <div class="text-center max-w-xl mx-auto mb-16">
+        <h2 id="why-heading" class="display-md text-ink">Built for campus life</h2>
+        <p class="body-sm text-muted mt-2">Public marketplaces are full of scammers, drop-offs, and shipping fees. Loopr keeps transactions safe and simple by keeping it local to Sinhgad campus.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto mb-20">
+        <!-- Feature 1 -->
+        <div class="bg-canvas border border-hairline rounded-lg p-6 space-y-3 text-center">
+          <div class="w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center text-primary text-xl font-bold mx-auto select-none" aria-hidden="true">🔒</div>
+          <h3 class="title-sm text-ink font-semibold">Verified Emails</h3>
+          <p class="body-sm text-muted text-xs">
+            Every user verifies their campus email. Know exactly who you are meeting, with no outside spam or scam accounts.
+          </p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="bg-canvas border border-hairline rounded-lg p-6 space-y-3 text-center">
+          <div class="w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center text-primary text-xl font-bold mx-auto select-none" aria-hidden="true">💬</div>
+          <h3 class="title-sm text-ink font-semibold">Secure Messages</h3>
+          <p class="body-sm text-muted text-xs">
+            Coordinate meetups, negotiate prices, and check items safely via our private, student-only in-app messaging.
+          </p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="bg-canvas border border-hairline rounded-lg p-6 space-y-3 text-center">
+          <div class="w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center text-primary text-xl font-bold mx-auto select-none" aria-hidden="true">💸</div>
+          <h3 class="title-sm text-ink font-semibold">Zero Commission</h3>
+          <p class="body-sm text-muted text-xs">
+            Keep 100% of your earnings. Loopr is student-run and completely free. No listing fees or transaction commissions.
+          </p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="bg-canvas border border-hairline rounded-lg p-6 space-y-3 text-center">
+          <div class="w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center text-primary text-xl font-bold mx-auto select-none" aria-hidden="true">🔄</div>
+          <h3 class="title-sm text-ink font-semibold">Circular Economy</h3>
+          <p class="body-sm text-muted text-xs">
+            Give textbooks, electronics, and dorm furniture a second life. Declutter your dorm and support sustainable campus living.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FAQ Accordion Section -->
+  <section class="bg-canvas border-t border-hairline py-20" aria-labelledby="faq-heading">
+    <div class="max-w-3xl mx-auto px-6">
+      <div class="text-center mb-12">
+        <h2 id="faq-heading" class="display-md text-ink">Frequently Asked Questions</h2>
+        <p class="body-sm text-muted mt-2">Everything you need to know about the marketplace.</p>
+      </div>
+
+      <FaqAccordion client:load />
+    </div>
+  </section>
+
+  <!-- CTA Band -->
+  <section class="max-w-6xl mx-auto px-6 py-16">
+    <div class="bg-primary text-white rounded-lg p-8 md:p-12 shadow-md relative overflow-hidden flex flex-col items-center justify-center text-center gap-8">
+      <!-- Background Graphic -->
+      <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_2px,transparent_2px)] [background-size:24px_24px] pointer-events-none" aria-hidden="true"></div>
+      
+      <div class="space-y-3 relative z-10 flex flex-col items-center">
+        <h2 class="display-sm text-white leading-tight">Ready to declutter your dorm?</h2>
+        <p class="body-sm text-white/80 max-w-xl mx-auto text-center">
+          List books, tech, and furniture in minutes. Support your campus circular economy and make some extra cash.
+        </p>
+      </div>
+
+      <div class="relative z-10 flex flex-col sm:flex-row gap-4 w-full sm:w-auto shrink-0 justify-center">
+        <a 
+          href="/listings/create" 
+          class="h-12 px-6 bg-canvas hover:bg-surface-card text-ink text-sm font-semibold rounded-md transition-colors flex items-center justify-center shadow-sm focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2"
+        >
+          Create a Listing
+        </a>
+        <a 
+          href="/marketplace" 
+          class="h-12 px-6 border border-white/40 hover:border-white/80 hover:bg-white/10 text-white text-sm font-semibold rounded-md transition-all flex items-center justify-center focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2"
+        >
+          Explore Market
+        </a>
+      </div>
+    </div>
+  </section>
 </Layout>
+
+<script>
+  import { getListings, isInWishlist, toggleWishlist, getSession } from "../utils/store.js";
+
+  function renderFeaturedListings() {
+    const listings = getListings().slice(0, 3);
+    const container = document.getElementById('featured-listings-container');
+    if (!container) return;
+
+    if (listings.length === 0) {
+      container.innerHTML = `
+        <div class="col-span-full bg-surface-card border border-hairline rounded-lg p-8 text-center text-muted">
+          No listings available. Be the first to add something!
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = listings.map(item => {
+      const typeBadges = {
+        Sell: 'bg-primary/10 text-primary',
+        Exchange: 'bg-accent-teal/10 text-accent-teal',
+        Donate: 'bg-success/10 text-success',
+        Buy: 'bg-accent-amber/10 text-accent-amber'
+      };
+      
+      const badgeClass = typeBadges[item.type] || 'bg-muted/10 text-muted';
+      
+      const priceDisplay = item.type === 'Donate' ? 'Free' : (item.type === 'Exchange' ? 'Swap' : `₹${item.price}`);
+      const subtitle = item.type === 'Exchange' ? `For: ${item.exchangeFor}` : item.category;
+      const wishlisted = isInWishlist(item.id);
+
+      return `
+        <div class="bg-surface-card border border-hairline rounded-lg overflow-hidden flex flex-col hover:border-primary/40 transition-all focus-within:ring-2 focus-within:ring-primary/20">
+          <div class="relative h-48 bg-surface-cream-strong overflow-hidden">
+            <img 
+              src="${item.image}" 
+              alt="${item.title}" 
+              class="w-full h-full object-cover transition-transform hover:scale-105 duration-500"
+              loading="lazy"
+            />
+            <button 
+              data-id="${item.id}"
+              class="wishlist-btn absolute top-3 right-3 w-8 h-8 rounded-full bg-canvas/90 backdrop-blur-xs flex items-center justify-center text-muted hover:text-primary transition-colors focus-visible:outline-2 focus-visible:outline-primary border border-hairline-soft"
+              aria-label="${wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}"
+            >
+              <svg class="w-4.5 h-4.5 ${wishlisted ? 'fill-primary text-primary' : 'text-current'}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+              </svg>
+            </button>
+            <span class="absolute bottom-3 left-3 px-2 py-0.5 rounded bg-surface-dark/80 backdrop-blur-xs text-xs font-semibold text-white uppercase tracking-wider">${item.condition}</span>
+          </div>
+
+          <div class="p-5 flex-grow flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-sans text-muted flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-success"></span>
+                  ${item.seller.college.split(' ')[0]}
+                </span>
+                <span class="px-2.5 py-0.5 rounded-sm text-xs font-semibold ${badgeClass}">${item.type}</span>
+              </div>
+              <h3 class="title-sm text-ink leading-snug line-clamp-1">
+                <a href="/listings/detail?id=${item.id}" class="hover:underline focus:outline-none">${item.title}</a>
+              </h3>
+              <p class="text-xs text-muted line-clamp-2">${item.description}</p>
+            </div>
+            
+            <div class="flex items-center justify-between border-t border-hairline-soft pt-4 mt-4">
+              <div>
+                <span class="text-xs text-muted block leading-tight">${subtitle}</span>
+                <span class="font-sans text-lg font-bold text-ink">${priceDisplay}</span>
+              </div>
+              <a 
+                href="/listings/detail?id=${item.id}" 
+                class="text-xs font-semibold text-primary hover:underline"
+              >
+                View Details
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Setup wishlist toggle event handlers
+    const btns = container.querySelectorAll('.wishlist-btn');
+    btns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const itemId = btn.getAttribute('data-id');
+        const session = getSession();
+        if (!session) {
+          window.location.href = '/auth?redirect=/';
+          return;
+        }
+
+        const added = toggleWishlist(itemId);
+        const svg = btn.querySelector('svg');
+        if (added) {
+          svg.classList.add('fill-primary', 'text-primary');
+          btn.setAttribute('aria-label', 'Remove from wishlist');
+        } else {
+          svg.classList.remove('fill-primary', 'text-primary');
+          btn.setAttribute('aria-label', 'Save to wishlist');
+        }
+      });
+    });
+  }
+
+  // FAQ Accordion Interactivity
+  function initFaq() {
+    const items = document.querySelectorAll('.faq-accordion-item');
+    items.forEach(item => {
+      const btn = item.querySelector('.faq-btn');
+      const content = item.querySelector('.faq-content');
+      const svg = item.querySelector('.faq-btn svg');
+      if (!btn || !content || !svg) return;
+
+      btn.addEventListener('click', () => {
+        const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+        
+        // Close other items
+        items.forEach(other => {
+          if (other !== item) {
+            const otherBtn = other.querySelector('.faq-btn');
+            const otherContent = other.querySelector('.faq-content');
+            const otherSvg = other.querySelector('.faq-btn svg');
+            if (otherBtn && otherContent && otherSvg) {
+              otherBtn.setAttribute('aria-expanded', 'false');
+              otherContent.style.maxHeight = null;
+              otherSvg.style.transform = 'rotate(0deg)';
+            }
+          }
+        });
+
+        if (isExpanded) {
+          btn.setAttribute('aria-expanded', 'false');
+          content.style.maxHeight = null;
+          svg.style.transform = 'rotate(0deg)';
+        } else {
+          btn.setAttribute('aria-expanded', 'true');
+          content.style.maxHeight = content.scrollHeight + 'px';
+          svg.style.transform = 'rotate(45deg)';
+        }
+      });
+    });
+  }
+
+  // Load content on document load
+  renderFeaturedListings();
+</script>

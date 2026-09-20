@@ -1,0 +1,599 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Marketplace — Loopr Campus Marketplace">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-8">
+    
+    <!-- Title Area -->
+    <div class="border-b border-hairline pb-6 mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+      <div>
+        <h1 class="display-md text-ink">Campus Marketplace</h1>
+        <p class="body-sm text-muted mt-1">Showing verified student listings near you.</p>
+      </div>
+      
+      <!-- Quick Info -->
+      <div id="stats-banner" class="text-xs font-sans text-muted bg-surface-card border border-hairline px-3 py-1.5 rounded-md self-start md:self-auto">
+        Loading listings count…
+      </div>
+    </div>
+
+    <!-- Main Grid: Sidebar Filters (3 cols) + Listings (9 cols) -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+      
+      <!-- Filters Sidebar (Col 3) -->
+      <aside class="md:col-span-3 space-y-6">
+        
+        <!-- Search Input -->
+        <div class="space-y-1.5">
+          <label for="search-input" class="block text-xs font-bold tracking-widest text-ink uppercase">Search Keyword</label>
+          <div class="relative">
+            <input 
+              type="text" 
+              id="search-input" 
+              placeholder="Search books, gadgets…" 
+              class="w-full h-10 pl-9 pr-8 bg-canvas border border-hairline rounded-md text-ink placeholder:text-muted focus:outline-none focus:border-primary text-sm"
+              spellcheck="false"
+            />
+            <svg class="absolute left-3 top-2.5 text-muted w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <button id="search-clear-btn" class="absolute right-3 top-2.5 text-muted hover:text-ink hidden" aria-label="Clear search">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter: Categories -->
+        <div class="space-y-2 border-t border-hairline-soft pt-4">
+          <h2 class="text-xs font-bold tracking-widest text-ink uppercase">Category</h2>
+          <div class="flex flex-col gap-1" id="category-filters">
+            {['All', 'Electronics', 'Books', 'Furniture', 'Academic', 'Apparel'].map((cat) => (
+              <button 
+                data-category={cat}
+                class="category-filter-btn flex items-center justify-between px-3 py-1.5 text-sm font-medium text-left rounded-md transition-colors cursor-pointer"
+              >
+                <span>{cat}</span>
+                <span class="text-xs font-sans text-muted/50 filter-count" data-count-cat={cat}></span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <!-- Filter: Listing Type -->
+        <div class="space-y-2 border-t border-hairline-soft pt-4">
+          <h2 class="text-xs font-bold tracking-widest text-ink uppercase">Transaction Type</h2>
+          <div class="space-y-2">
+            {['All', 'Sell', 'Buy', 'Exchange', 'Donate'].map((type) => (
+              <label class="flex items-center gap-2 text-sm text-body cursor-pointer">
+                <input 
+                  type="radio" 
+                  name="filter-type" 
+                  value={type} 
+                  checked={type === 'All'}
+                  class="type-radio w-4 h-4 text-primary border-hairline focus:ring-primary/20 accent-primary" 
+                />
+                <span>{type === 'All' ? 'All Types' : type}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <!-- Filter: Condition -->
+        <div class="space-y-2 border-t border-hairline-soft pt-4">
+          <h2 class="text-xs font-bold tracking-widest text-ink uppercase">Item Condition</h2>
+          <div class="space-y-2">
+            {['All', 'Like New', 'Excellent', 'Good', 'Fair'].map((cond) => (
+              <label class="flex items-center gap-2 text-sm text-body cursor-pointer">
+                <input 
+                  type="radio" 
+                  name="filter-condition" 
+                  value={cond} 
+                  checked={cond === 'All'}
+                  class="condition-radio w-4 h-4 text-primary border-hairline focus:ring-primary/20 accent-primary" 
+                />
+                <span>{cond === 'All' ? 'Any Condition' : cond}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <!-- Sort dropdown -->
+        <div class="space-y-1.5 border-t border-hairline-soft pt-4">
+          <label for="sort-select" class="block text-xs font-bold tracking-widest text-ink uppercase">Sort By</label>
+          <select 
+            id="sort-select" 
+            class="w-full h-10 px-3 bg-canvas border border-hairline rounded-md text-ink text-sm focus:outline-none focus:border-primary"
+          >
+            <option value="newest">Recently Posted</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+          </select>
+        </div>
+
+        <button 
+          id="reset-filters-btn" 
+          class="w-full h-10 border border-hairline hover:bg-surface-card text-ink text-xs font-semibold rounded-md transition-colors cursor-pointer"
+        >
+          Reset All Filters
+        </button>
+
+      </aside>
+
+      <!-- Listings Grid (Col 9) -->
+      <section class="md:col-span-9" aria-label="Listings Grid">
+        
+        <!-- Active Filter Pills Bar -->
+        <div id="active-filters-bar" class="flex flex-wrap items-center gap-2 mb-4 hidden">
+          <span class="text-xs font-sans text-muted mr-1">Active filters:</span>
+          <div id="pills-container" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        <!-- Cards Container -->
+        <div id="listings-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Rendered via JS -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden flex-col items-center justify-center py-16 text-center bg-surface-card border border-hairline rounded-lg p-8">
+          <div class="text-4xl mb-4" aria-hidden="true">🔍</div>
+          <h3 class="title-sm text-ink mb-1">No items match your criteria</h3>
+          <p class="body-sm text-muted max-w-sm mb-4">Try broadening your keyword search, selecting another category, or resetting the filters.</p>
+          <button id="empty-reset-btn" class="h-10 px-5 bg-primary hover:bg-primary-active text-white text-sm font-medium rounded-md transition-colors shadow-sm cursor-pointer">
+            Reset Filters
+          </button>
+        </div>
+
+      </section>
+
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { getListings, isInWishlist, toggleWishlist, getSession } from "../utils/store.js";
+
+  // State Management
+  let activeFilters = {
+    search: '',
+    category: 'All',
+    type: 'All',
+    condition: 'All',
+    sort: 'newest'
+  };
+
+  // Bind parameters on first load from URL
+  function loadUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    activeFilters.search = params.get('search') || '';
+    activeFilters.category = params.get('category') || 'All';
+    activeFilters.type = params.get('type') || 'All';
+    activeFilters.condition = params.get('condition') || 'All';
+    activeFilters.sort = params.get('sort') || 'newest';
+    
+    // Sync filters to DOM elements
+    const searchInput = document.getElementById('search-input') as HTMLInputElement;
+    if (searchInput) {
+      searchInput.value = activeFilters.search;
+      toggleSearchClearBtn(activeFilters.search);
+    }
+    
+    const radiosType = document.querySelectorAll('.type-radio') as NodeListOf<HTMLInputElement>;
+    radiosType.forEach(radio => {
+      radio.checked = radio.value === activeFilters.type;
+    });
+
+    const radiosCond = document.querySelectorAll('.condition-radio') as NodeListOf<HTMLInputElement>;
+    radiosCond.forEach(radio => {
+      radio.checked = radio.value === activeFilters.condition;
+    });
+
+    const sortSelect = document.getElementById('sort-select') as HTMLSelectElement;
+    if (sortSelect) sortSelect.value = activeFilters.sort;
+  }
+
+  function toggleSearchClearBtn(val: string) {
+    const clearBtn = document.getElementById('search-clear-btn');
+    if (clearBtn) {
+      if (val.length > 0) clearBtn.classList.remove('hidden');
+      else clearBtn.classList.add('hidden');
+    }
+  }
+
+  function updateUrl() {
+    const params = new URLSearchParams();
+    if (activeFilters.search) params.set('search', activeFilters.search);
+    if (activeFilters.category !== 'All') params.set('category', activeFilters.category);
+    if (activeFilters.type !== 'All') params.set('type', activeFilters.type);
+    if (activeFilters.condition !== 'All') params.set('condition', activeFilters.condition);
+    if (activeFilters.sort !== 'newest') params.set('sort', activeFilters.sort);
+
+    const paramStr = params.toString();
+    const newUrl = window.location.pathname + (paramStr ? '?' + paramStr : '');
+    window.history.replaceState({}, '', newUrl);
+  }
+
+  function updateCounts(listings: any[]) {
+    // Categories count mapping
+    const cats = ['All', 'Electronics', 'Books', 'Furniture', 'Academic', 'Apparel'];
+    cats.forEach(cat => {
+      const el = document.querySelector(`[data-count-cat="${cat}"]`);
+      if (!el) return;
+      if (cat === 'All') {
+        el.textContent = listings.length.toString();
+      } else {
+        const count = listings.filter(l => l.category === cat).length;
+        el.textContent = count.toString();
+      }
+    });
+
+    const stats = document.getElementById('stats-banner');
+    if (stats) {
+      stats.textContent = `${listings.length} campus listings total`;
+    }
+  }
+
+  function renderListings() {
+    const listings = getListings();
+    
+    // Calculate counts before filtering
+    updateCounts(listings);
+
+    // Apply Filters
+    let filteredListings = listings.filter(item => {
+      // Search text
+      if (activeFilters.search) {
+        const keyword = activeFilters.search.toLowerCase();
+        const matchesTitle = item.title.toLowerCase().includes(keyword);
+        const matchesDesc = item.description.toLowerCase().includes(keyword);
+        const matchesCat = item.category.toLowerCase().includes(keyword);
+        if (!matchesTitle && !matchesDesc && !matchesCat) return false;
+      }
+
+      // Category
+      if (activeFilters.category !== 'All' && item.category !== activeFilters.category) {
+        return false;
+      }
+
+      // Type
+      if (activeFilters.type !== 'All' && item.type !== activeFilters.type) {
+        return false;
+      }
+
+      // Condition
+      if (activeFilters.condition !== 'All' && item.condition !== activeFilters.condition) {
+        return false;
+      }
+
+      return true;
+    });
+
+    // Sort listings
+    if (activeFilters.sort === 'price-low') {
+      filteredListings.sort((a, b) => a.price - b.price);
+    } else if (activeFilters.sort === 'price-high') {
+      filteredListings.sort((a, b) => b.price - a.price);
+    } else {
+      // Default: Recently posted (since seed database is sorted by newest, let's keep it or parse dates)
+      // For ID string 'l1', 'l2', newest are first, but let's compare timestamps if we generated new ones
+      filteredListings.sort((a, b) => {
+        const tA = a.id.startsWith('l_') ? parseInt(a.id.split('_')[1]) : 0;
+        const tB = b.id.startsWith('l_') ? parseInt(b.id.split('_')[1]) : 0;
+        return tB - tA; // Newest first
+      });
+    }
+
+    // Update Filter Pills
+    updateFilterPills();
+
+    // Render DOM
+    const grid = document.getElementById('listings-grid');
+    const emptyState = document.getElementById('empty-state');
+    if (!grid || !emptyState) return;
+
+    if (filteredListings.length === 0) {
+      grid.classList.add('hidden');
+      emptyState.classList.remove('hidden');
+      return;
+    }
+
+    grid.classList.remove('hidden');
+    emptyState.classList.add('hidden');
+
+    grid.innerHTML = filteredListings.map(item => {
+      const typeBadges = {
+        Sell: 'bg-primary/10 text-primary',
+        Exchange: 'bg-accent-teal/10 text-accent-teal',
+        Donate: 'bg-success/10 text-success',
+        Buy: 'bg-accent-amber/10 text-accent-amber'
+      };
+      
+      const badgeClass = typeBadges[item.type] || 'bg-muted/10 text-muted';
+      
+      const priceDisplay = item.type === 'Donate' ? 'Free' : (item.type === 'Exchange' ? 'Swap' : `₹${item.price}`);
+      const subtitle = item.type === 'Exchange' ? `For: ${item.exchangeFor}` : item.category;
+      const wishlisted = isInWishlist(item.id);
+
+      return `
+        <div class="bg-surface-card border border-hairline rounded-lg overflow-hidden flex flex-col hover:border-primary/40 transition-all focus-within:ring-2 focus-within:ring-primary/20">
+          <div class="relative h-48 bg-surface-cream-strong overflow-hidden">
+            <img 
+              src="${item.image}" 
+              alt="${item.title}" 
+              class="w-full h-full object-cover transition-transform hover:scale-105 duration-500"
+              loading="lazy"
+            />
+            <button 
+              data-id="${item.id}"
+              class="wishlist-btn absolute top-3 right-3 w-8 h-8 rounded-full bg-canvas/90 backdrop-blur-xs flex items-center justify-center text-muted hover:text-primary transition-colors focus-visible:outline-2 focus-visible:outline-primary border border-hairline-soft"
+              aria-label="${wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}"
+            >
+              <svg class="w-4.5 h-4.5 ${wishlisted ? 'fill-primary text-primary' : 'text-current'}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+              </svg>
+            </button>
+            <span class="absolute bottom-3 left-3 px-2 py-0.5 rounded bg-surface-dark/80 backdrop-blur-xs text-xs font-semibold text-white uppercase tracking-wider">${item.condition}</span>
+          </div>
+
+          <div class="p-5 flex-grow flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-sans text-muted flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-success"></span>
+                  ${item.seller.college.split(' ')[0]}
+                </span>
+                <span class="px-2.5 py-0.5 rounded-sm text-xs font-semibold ${badgeClass}">${item.type}</span>
+              </div>
+              <h3 class="title-sm text-ink leading-snug line-clamp-1">
+                <a href="/listings/detail?id=${item.id}" class="hover:underline focus:outline-none">${item.title}</a>
+              </h3>
+              <p class="text-xs text-muted line-clamp-2">${item.description}</p>
+            </div>
+            
+            <div class="flex items-center justify-between border-t border-hairline-soft pt-4 mt-4">
+              <div>
+                <span class="text-xs text-muted block leading-tight">${subtitle}</span>
+                <span class="font-sans text-lg font-bold text-ink">${priceDisplay}</span>
+              </div>
+              <a 
+                href="/listings/detail?id=${item.id}" 
+                class="text-xs font-semibold text-primary hover:underline"
+              >
+                View Details
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Setup events
+    setupWishlistHandlers(grid);
+  }
+
+  function setupWishlistHandlers(container: HTMLElement) {
+    const btns = container.querySelectorAll('.wishlist-btn');
+    btns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const itemId = btn.getAttribute('data-id');
+        const session = getSession();
+        if (!session) {
+          window.location.href = `/auth?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+          return;
+        }
+
+        const added = toggleWishlist(itemId);
+        const svg = btn.querySelector('svg');
+        if (added) {
+          svg.classList.add('fill-primary', 'text-primary');
+          btn.setAttribute('aria-label', 'Remove from wishlist');
+        } else {
+          svg.classList.remove('fill-primary', 'text-primary');
+          btn.setAttribute('aria-label', 'Save to wishlist');
+        }
+      });
+    });
+  }
+
+  function updateCategoryTabStyles() {
+    const btns = document.querySelectorAll('.category-filter-btn');
+    btns.forEach(btn => {
+      const cat = btn.getAttribute('data-category');
+      if (cat === activeFilters.category) {
+        btn.classList.add('bg-surface-card', 'text-ink');
+        btn.classList.remove('text-muted', 'hover:bg-surface-soft');
+      } else {
+        btn.classList.remove('bg-surface-card', 'text-ink');
+        btn.classList.add('text-muted', 'hover:bg-surface-soft');
+      }
+    });
+  }
+
+  function updateFilterPills() {
+    const pillsBar = document.getElementById('active-filters-bar');
+    const container = document.getElementById('pills-container');
+    if (!pillsBar || !container) return;
+
+    let activePills = [];
+    
+    if (activeFilters.search) {
+      activePills.push({ key: 'search', label: `Search: "${activeFilters.search}"` });
+    }
+    if (activeFilters.category !== 'All') {
+      activePills.push({ key: 'category', label: `Category: ${activeFilters.category}` });
+    }
+    if (activeFilters.type !== 'All') {
+      activePills.push({ key: 'type', label: `Type: ${activeFilters.type}` });
+    }
+    if (activeFilters.condition !== 'All') {
+      activePills.push({ key: 'condition', label: `Condition: ${activeFilters.condition}` });
+    }
+
+    if (activePills.length === 0) {
+      pillsBar.classList.add('hidden');
+      return;
+    }
+
+    pillsBar.classList.remove('hidden');
+    container.innerHTML = activePills.map(p => `
+      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-card border border-hairline text-xs text-ink">
+        <span>${p.label}</span>
+        <button 
+          data-pill-key="${p.key}"
+          class="pill-remove-btn text-muted hover:text-primary transition-colors cursor-pointer"
+          aria-label="Remove filter"
+        >
+          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </span>
+    `).join('');
+
+    // Setup listeners on pill buttons
+    container.querySelectorAll('.pill-remove-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-pill-key');
+        if (key === 'search') {
+          activeFilters.search = '';
+          const searchInput = document.getElementById('search-input') as HTMLInputElement;
+          if (searchInput) searchInput.value = '';
+          toggleSearchClearBtn('');
+        } else if (key === 'category') {
+          activeFilters.category = 'All';
+          updateCategoryTabStyles();
+        } else if (key === 'type') {
+          activeFilters.type = 'All';
+          const radio = document.querySelector('.type-radio[value="All"]') as HTMLInputElement;
+          if (radio) radio.checked = true;
+        } else if (key === 'condition') {
+          activeFilters.condition = 'All';
+          const radio = document.querySelector('.condition-radio[value="All"]') as HTMLInputElement;
+          if (radio) radio.checked = true;
+        }
+        
+        updateUrl();
+        renderListings();
+      });
+    });
+  }
+
+  // Setup Event Listeners
+  function initListeners() {
+    // Keyword Search
+    const searchInput = document.getElementById('search-input') as HTMLInputElement;
+    const clearBtn = document.getElementById('search-clear-btn');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        const val = searchInput.value.trim();
+        activeFilters.search = val;
+        toggleSearchClearBtn(val);
+        updateUrl();
+        renderListings();
+      });
+    }
+    if (clearBtn && searchInput) {
+      clearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        activeFilters.search = '';
+        toggleSearchClearBtn('');
+        updateUrl();
+        renderListings();
+      });
+    }
+
+    // Category click
+    const catBtns = document.querySelectorAll('.category-filter-btn');
+    catBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cat = btn.getAttribute('data-category');
+        activeFilters.category = cat;
+        updateCategoryTabStyles();
+        updateUrl();
+        renderListings();
+      });
+    });
+
+    // Type radio
+    const typeRadios = document.querySelectorAll('.type-radio');
+    typeRadios.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        const target = e.target as HTMLInputElement;
+        activeFilters.type = target.value;
+        updateUrl();
+        renderListings();
+      });
+    });
+
+    // Condition radio
+    const condRadios = document.querySelectorAll('.condition-radio');
+    condRadios.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        const target = e.target as HTMLInputElement;
+        activeFilters.condition = target.value;
+        updateUrl();
+        renderListings();
+      });
+    });
+
+    // Sort select
+    const sortSelect = document.getElementById('sort-select');
+    if (sortSelect) {
+      sortSelect.addEventListener('change', (e) => {
+        const target = e.target as HTMLSelectElement;
+        activeFilters.sort = target.value;
+        updateUrl();
+        renderListings();
+      });
+    }
+
+    // Reset buttons
+    const resetFilters = () => {
+      activeFilters = {
+        search: '',
+        category: 'All',
+        type: 'All',
+        condition: 'All',
+        sort: 'newest'
+      };
+
+      // Reset DOM elements
+      if (searchInput) {
+        searchInput.value = '';
+        toggleSearchClearBtn('');
+      }
+      
+      const typeRadioAll = document.querySelector('.type-radio[value="All"]') as HTMLInputElement;
+      if (typeRadioAll) typeRadioAll.checked = true;
+
+      const condRadioAll = document.querySelector('.condition-radio[value="All"]') as HTMLInputElement;
+      if (condRadioAll) condRadioAll.checked = true;
+
+      if (sortSelect) (sortSelect as HTMLSelectElement).value = 'newest';
+
+      updateCategoryTabStyles();
+      updateUrl();
+      renderListings();
+    };
+
+    const resetBtn = document.getElementById('reset-filters-btn');
+    if (resetBtn) resetBtn.addEventListener('click', resetFilters);
+
+    const emptyResetBtn = document.getElementById('empty-reset-btn');
+    if (emptyResetBtn) emptyResetBtn.addEventListener('click', resetFilters);
+  }
+
+  // Run on load
+  loadUrlParams();
+  updateCategoryTabStyles();
+  renderListings();
+  initListeners();
+</script>

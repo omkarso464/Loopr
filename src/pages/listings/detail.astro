@@ -1,0 +1,352 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Listing Details — Loopr">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-8">
+    
+    <!-- Back Navigation -->
+    <div class="mb-6">
+      <a 
+        id="back-link" 
+        href="/marketplace" 
+        class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-active transition-colors group focus-visible:outline-2 focus-visible:outline-primary rounded-md p-1"
+      >
+        <svg class="w-4 h-4 transition-transform group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Marketplace
+      </a>
+    </div>
+
+    <!-- Main Detail Layout (Grid 12) -->
+    <div id="detail-loading" class="py-20 text-center text-muted">
+      Loading item details…
+    </div>
+
+    <div id="detail-error" class="hidden py-16 text-center bg-surface-card border border-hairline rounded-lg p-8">
+      <div class="text-4xl mb-4" aria-hidden="true">⚠️</div>
+      <h3 class="title-sm text-ink mb-1">Listing not found</h3>
+      <p class="body-sm text-muted mb-6">The listing you are trying to view does not exist or has been removed.</p>
+      <a href="/marketplace" class="h-10 px-5 bg-primary hover:bg-primary-active text-white text-sm font-medium rounded-md transition-colors inline-flex items-center justify-center">
+        Return to Marketplace
+      </a>
+    </div>
+
+    <article id="detail-content" class="hidden grid grid-cols-1 md:grid-cols-12 gap-10">
+      
+      <!-- Left Column: Image (Col 7) -->
+      <div class="md:col-span-7 space-y-6">
+        <div class="relative w-full aspect-video md:aspect-[4/3] bg-surface-cream-strong border border-hairline rounded-lg overflow-hidden">
+          <img 
+            id="item-image" 
+            src="" 
+            alt="" 
+            class="w-full h-full object-cover" 
+          />
+          <span 
+            id="item-condition-badge" 
+            class="absolute bottom-4 left-4 px-3 py-1 rounded bg-surface-dark/95 backdrop-blur-xs text-xs font-semibold text-white uppercase tracking-wider shadow-sm"
+          >
+            <!-- Filled via JS -->
+          </span>
+        </div>
+
+        <!-- Description Box -->
+        <div class="bg-surface-card border border-hairline rounded-lg p-6 space-y-4">
+          <h2 class="title-md text-ink">Description</h2>
+          <p id="item-description" class="body-md text-body leading-relaxed whitespace-pre-wrap">
+            <!-- Filled via JS -->
+          </p>
+        </div>
+      </div>
+
+      <!-- Right Column: Info & Actions (Col 5) -->
+      <div class="md:col-span-5 space-y-6">
+        
+        <!-- Header Info Card -->
+        <div class="bg-canvas border border-hairline rounded-lg p-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <span 
+              id="item-category" 
+              class="caption-uppercase text-muted"
+            >
+              <!-- Category -->
+            </span>
+            <span 
+              id="item-type-badge" 
+              class="px-2.5 py-0.5 rounded-sm text-xs font-semibold"
+            >
+              <!-- Type -->
+            </span>
+          </div>
+
+          <h1 id="item-title" class="display-sm text-ink leading-tight">
+            <!-- Title -->
+          </h1>
+
+          <div class="border-y border-hairline-soft py-4 flex items-baseline justify-between">
+            <div>
+              <span class="text-xs text-muted block">Transaction Details</span>
+              <span id="item-price" class="font-sans text-3xl font-bold text-ink">
+                <!-- Price -->
+              </span>
+            </div>
+            <div class="text-right text-xs text-muted font-sans" id="item-date">
+              <!-- Date -->
+            </div>
+          </div>
+
+          <!-- Transaction type descriptions -->
+          <div id="exchange-for-container" class="hidden bg-surface-soft border border-hairline-soft rounded-md p-3 text-sm">
+            <span class="font-semibold text-ink block mb-1">Looking to Exchange for:</span>
+            <span id="exchange-for-text" class="text-body-strong italic"></span>
+          </div>
+
+          <!-- Primary Actions -->
+          <div class="space-y-3 pt-2">
+            <button 
+              id="chat-cta-btn" 
+              class="w-full h-12 bg-primary hover:bg-primary-active text-white text-sm font-semibold rounded-md transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+              Chat with Seller
+            </button>
+            
+            <button 
+              id="wishlist-cta-btn" 
+              class="w-full h-12 border border-hairline hover:bg-surface-card text-ink text-sm font-semibold rounded-md transition-colors flex items-center justify-center gap-2 cursor-pointer focus-visible:outline-2 focus-visible:outline-primary"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+              </svg>
+              <span id="wishlist-btn-text">Save to Wishlist</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Seller Profile Card -->
+        <div class="bg-surface-card border border-hairline rounded-lg p-6 space-y-4">
+          <h3 class="text-xs font-bold tracking-widest text-ink uppercase">About the Seller</h3>
+          
+          <div class="flex items-center gap-3">
+            <span 
+              id="seller-avatar" 
+              class="w-12 h-12 rounded-full bg-surface-cream-strong border border-hairline text-ink flex items-center justify-center font-bold text-lg"
+            >
+              <!-- Avatar Initial -->
+            </span>
+            <div class="space-y-0.5">
+              <div class="flex items-center gap-1.5">
+                <span id="seller-name" class="font-sans text-sm font-semibold text-ink"><!-- Name --></span>
+                <span 
+                  id="seller-verified-badge" 
+                  class="hidden inline-flex items-center px-1.5 py-0.5 rounded-full bg-success/10 text-success text-[10px] font-bold uppercase tracking-wider"
+                  title="Verified Student Email"
+                >
+                  Verified
+                </span>
+              </div>
+              <p id="seller-college" class="text-xs text-muted font-sans flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-success"></span>
+                <!-- College -->
+              </p>
+            </div>
+          </div>
+
+          <div class="border-t border-hairline-soft pt-4 flex items-center justify-between text-xs text-muted">
+            <span>Seller Rating</span>
+            <span class="flex items-center gap-1 font-semibold text-ink">
+              <svg class="w-4 h-4 text-accent-amber fill-accent-amber" viewBox="0 0 24 24" stroke="currentColor">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+              <span id="seller-rating"><!-- Rating --></span> / 5.0
+            </span>
+          </div>
+        </div>
+
+        <!-- Campus Safety Tips -->
+        <div class="border border-hairline rounded-lg p-5 space-y-3 bg-surface-soft/40">
+          <h3 class="text-xs font-bold tracking-widest text-ink uppercase flex items-center gap-1">
+            🛡️ Safe Transaction Tips
+          </h3>
+          <ul class="text-xs text-muted space-y-2 list-disc pl-4" role="list">
+            <li>Meet in a well-lit, public location (e.g. Nescafe, Central Library).</li>
+            <li>Inspect the item thoroughly before exchanging money.</li>
+            <li>Prefer campus-recommended digital payments (GPay/UPI, etc.) or cash.</li>
+            <li>Never meet alone or in private dorm rooms with strangers.</li>
+          </ul>
+        </div>
+
+      </div>
+
+    </article>
+  </div>
+</Layout>
+
+<script>
+  import { getListingById, isInWishlist, toggleWishlist, getSession, initiateChat } from "../../utils/store.js";
+
+  // State
+  let currentItem: any = null;
+
+  function loadItemDetails() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    
+    const loadingEl = document.getElementById('detail-loading');
+    const errorEl = document.getElementById('detail-error');
+    const contentEl = document.getElementById('detail-content');
+
+    if (!id) {
+      if (loadingEl) loadingEl.classList.add('hidden');
+      if (errorEl) errorEl.classList.remove('hidden');
+      return;
+    }
+
+    currentItem = getListingById(id);
+
+    if (loadingEl) loadingEl.classList.add('hidden');
+
+    if (!currentItem) {
+      if (errorEl) errorEl.classList.remove('hidden');
+      return;
+    }
+
+    if (contentEl) contentEl.classList.remove('hidden');
+
+    // Populate Data
+    const imgEl = document.getElementById('item-image') as HTMLImageElement;
+    const condEl = document.getElementById('item-condition-badge');
+    const descEl = document.getElementById('item-description');
+    const catEl = document.getElementById('item-category');
+    const typeEl = document.getElementById('item-type-badge');
+    const titleEl = document.getElementById('item-title');
+    const priceEl = document.getElementById('item-price');
+    const dateEl = document.getElementById('item-date');
+    const avatarEl = document.getElementById('seller-avatar');
+    const sNameEl = document.getElementById('seller-name');
+    const sVerifiedEl = document.getElementById('seller-verified-badge');
+    const sCollegeEl = document.getElementById('seller-college');
+    const sRatingEl = document.getElementById('seller-rating');
+    const backLink = document.getElementById('back-link') as HTMLAnchorElement;
+
+    // Set Back Link to preserve marketplace filters if available
+    if (document.referrer && document.referrer.includes('/marketplace')) {
+      backLink.href = document.referrer;
+    }
+
+    if (imgEl) {
+      imgEl.src = currentItem.image;
+      imgEl.alt = currentItem.title;
+    }
+
+    if (condEl) condEl.textContent = currentItem.condition;
+    if (descEl) descEl.textContent = currentItem.description;
+    if (catEl) catEl.textContent = currentItem.category;
+    
+    if (typeEl) {
+      typeEl.textContent = currentItem.type;
+      const typeBadges = {
+        Sell: 'bg-primary/10 text-primary',
+        Exchange: 'bg-accent-teal/10 text-accent-teal',
+        Donate: 'bg-success/10 text-success',
+        Buy: 'bg-accent-amber/10 text-accent-amber'
+      };
+      typeEl.className = `px-2.5 py-0.5 rounded-sm text-xs font-semibold ${typeBadges[currentItem.type] || 'bg-muted/10 text-muted'}`;
+    }
+
+    if (titleEl) titleEl.textContent = currentItem.title;
+    if (priceEl) {
+      priceEl.textContent = currentItem.type === 'Donate' ? 'Free' : (currentItem.type === 'Exchange' ? 'Swap' : `₹${currentItem.price}`);
+    }
+    if (dateEl) dateEl.textContent = `Posted on\n${currentItem.date}`;
+
+    // Exchange specifics
+    const exchangeContainer = document.getElementById('exchange-for-container');
+    const exchangeText = document.getElementById('exchange-for-text');
+    if (currentItem.type === 'Exchange' && currentItem.exchangeFor && exchangeContainer && exchangeText) {
+      exchangeContainer.classList.remove('hidden');
+      exchangeText.textContent = currentItem.exchangeFor;
+    }
+
+    // Seller Info
+    if (avatarEl) avatarEl.textContent = currentItem.seller.name.charAt(0).toUpperCase();
+    if (sNameEl) sNameEl.textContent = currentItem.seller.name;
+    if (currentItem.seller.verified && sVerifiedEl) sVerifiedEl.classList.remove('hidden');
+    if (sCollegeEl) sCollegeEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-success"></span>${currentItem.seller.college}`;
+    if (sRatingEl) sRatingEl.textContent = currentItem.seller.rating.toFixed(1);
+
+    // Wishlist Button status
+    updateWishlistButton();
+  }
+
+  function updateWishlistButton() {
+    const btn = document.getElementById('wishlist-cta-btn');
+    const text = document.getElementById('wishlist-btn-text');
+    if (!btn || !text || !currentItem) return;
+
+    const wishlisted = isInWishlist(currentItem.id);
+    const svg = btn.querySelector('svg');
+
+    if (wishlisted) {
+      svg.classList.add('fill-primary', 'text-primary');
+      text.textContent = 'Saved to Wishlist';
+      btn.setAttribute('aria-label', 'Remove from wishlist');
+    } else {
+      svg.classList.remove('fill-primary', 'text-primary');
+      text.textContent = 'Save to Wishlist';
+      btn.setAttribute('aria-label', 'Save to wishlist');
+    }
+  }
+
+  // Bind Actions
+  function setupActions() {
+    const chatBtn = document.getElementById('chat-cta-btn');
+    const wishlistBtn = document.getElementById('wishlist-cta-btn');
+
+    if (chatBtn) {
+      chatBtn.addEventListener('click', () => {
+        if (!currentItem) return;
+        
+        const session = getSession();
+        if (!session) {
+          // Redirect to sign in, then back
+          window.location.href = `/auth?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+          return;
+        }
+
+        // Prevent chatting with yourself
+        if (session.email === currentItem.seller.email) {
+          alert("This is your own listing!");
+          return;
+        }
+
+        // Initiate chat in store and redirect
+        const chatId = initiateChat(currentItem.id, currentItem.seller.email, session.email);
+        window.location.href = `/chat?id=${chatId}`;
+      });
+    }
+
+    if (wishlistBtn) {
+      wishlistBtn.addEventListener('click', () => {
+        if (!currentItem) return;
+        
+        const session = getSession();
+        if (!session) {
+          window.location.href = `/auth?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+          return;
+        }
+
+        toggleWishlist(currentItem.id);
+        updateWishlistButton();
+      });
+    }
+  }
+
+  // Run
+  loadItemDetails();
+  setupActions();
+</script>
